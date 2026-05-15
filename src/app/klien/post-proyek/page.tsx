@@ -76,7 +76,7 @@ export default function PostProyekPage() {
       setLoading(false)
     } else {
       // Berhasil → redirect ke halaman jelajah
-      router.push('/app/jelajah')
+      router.push('/klien/proyek')
     }
   }
 
