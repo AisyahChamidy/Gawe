@@ -52,7 +52,8 @@ export default function KlienProyekPage() {
     let names: Record<string, string> = {}
     if (ids.length > 0) {
       const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', ids)
-      ;(profiles || []).forEach((p: any) => { names[p.id] = p.full_name || 'Anonim' })
+      console.log('profiles fetched:', profiles, 'ids:', ids)
+      ;(profiles || []).forEach((p: any) => { names[p.id] = p.full_name || p.id.slice(0,8) })
     }
 
     setProjects(projectsData.map((p: any) => ({
