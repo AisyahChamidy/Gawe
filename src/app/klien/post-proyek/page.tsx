@@ -3,233 +3,121 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import Navbar from '@/components/Navbar'
 
 const KATEGORI = [
-  'Desain Grafis',
-  'Web Development',
-  'Social Media',
-  'Penulisan',
-  'Video Editing',
-  'Fotografi',
-  'Terjemahan',
-  'Data Entry',
-  'Marketing',
-  'Lainnya',
+  'Desain Grafis', 'Web Development', 'Social Media', 'Penulisan Konten',
+  'Video Editing', 'Fotografi', 'Translasi', 'Data Entry', 'UI/UX Design', 'Lainnya'
 ]
 
 export default function PostProyekPage() {
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [category, setCategory] = useState('')
-  const [budgetMin, setBudgetMin] = useState('')
-  const [budgetMax, setBudgetMax] = useState('')
-  const [estimatedDays, setEstimatedDays] = useState('')
-  const [skillsInput, setSkillsInput] = useState('')
+  const [form, setForm] = useState({
+    title: '', description: '', category: '',
+    budget_min: 200000, budget_max: 500000,
+    estimated_days: 7, skills_required: ''
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-
   const router = useRouter()
   const supabase = createClient()
 
-  // Skills diinput sebagai teks dipisah koma, kita convert ke array
-  // Contoh: "Figma, Illustrator, Logo Design" → ["Figma", "Illustrator", "Logo Design"]
-
   async function handleSubmit() {
+    if (!form.title || !form.description || !form.category) {
+      setError('Judul, deskripsi, dan kategori wajib diisi.')
+      return
+    }
     setLoading(true)
     setError('')
 
-    // Cek user sudah login
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      router.push('/auth/masuk')
-      return
-    }
+    if (!user) { router.push('/auth/masuk'); return }
 
-    // Validasi sederhana
-    if (!title || !description || !category || !budgetMin || !budgetMax || !estimatedDays) {
-      setError('Semua field harus diisi')
-      setLoading(false)
-      return
-    }
+    const skills = form.skills_required
+      ? form.skills_required.split(',').map(s => s.trim()).filter(Boolean)
+      : []
 
-    // Convert skills string ke array
-    const skillsArray = skillsInput
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s.length > 0)
-
-    // Insert ke Supabase
-    const { error } = await supabase.from('projects').insert({
+    const { error: err } = await supabase.from('projects').insert({
       client_id: user.id,
-      title,
-      description,
-      category,
-      budget_min: parseInt(budgetMin),
-      budget_max: parseInt(budgetMax),
-      estimated_days: parseInt(estimatedDays),
-      skills_required: skillsArray,
+      title: form.title,
+      description: form.description,
+      category: form.category,
+      budget_min: form.budget_min,
+      budget_max: form.budget_max,
+      estimated_days: form.estimated_days,
+      skills_required: skills,
       status: 'open',
     })
 
-    if (error) {
-      setError('Gagal posting proyek: ' + error.message)
-      setLoading(false)
-    } else {
-      // Berhasil → redirect ke halaman jelajah
-      router.push('/klien/proyek')
-    }
+    if (err) { setError(err.message); setLoading(false); return }
+    router.push('/klien/proyek')
   }
 
   const inputStyle = {
-    width: '100%',
-    padding: '10px 12px',
-    backgroundColor: '#0A0E1A',
-    border: '1px solid #1e2d4a',
-    borderRadius: '8px',
-    color: 'white',
-    fontSize: '14px',
-    boxSizing: 'border-box' as const,
-  }
-
-  const labelStyle = {
-    color: '#8892a4',
-    fontSize: '13px',
-    display: 'block',
-    marginBottom: '6px',
+    width: '100%', padding: '12px 16px', backgroundColor: '#131929',
+    border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white',
+    fontSize: '14px', outline: 'none', boxSizing: 'border-box' as const,
   }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
-      {/* Navbar */}
-      <div style={{
-        backgroundColor: '#131929',
-        borderBottom: '1px solid #1e2d4a',
-        padding: '16px 32px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#4F6EF7' }}>Gawe</span>
-        <span style={{ color: '#8892a4', fontSize: '14px' }}>Mode: Klien</span>
-      </div>
-
+      <Navbar />
       <div style={{ padding: '40px 32px', maxWidth: '640px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '24px', marginBottom: '8px' }}>Post Proyek Baru</h1>
-        <p style={{ color: '#8892a4', marginBottom: '32px', fontSize: '14px' }}>
-          Isi detail proyekmu. Freelancer akan melihat dan melamar proyek ini.
-        </p>
-
-        {error && (
-          <div style={{
-            backgroundColor: '#2d1515', color: '#ff6b6b',
-            padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px'
-          }}>
-            {error}
-          </div>
-        )}
+        <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Post Proyek Baru</h1>
+        <p style={{ color: '#8892a4', marginBottom: '32px' }}>Isi detail proyekmu. Freelancer akan melihat dan melamar proyek ini.</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
-            <label style={labelStyle}>Judul proyek</label>
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="cth: Desain Logo untuk Toko Online"
-              style={inputStyle}
-            />
+            <label style={{ fontSize: '14px', color: '#8892a4', display: 'block', marginBottom: '8px' }}>Judul proyek</label>
+            <input style={inputStyle} placeholder="cth: Desain Logo untuk Toko Online"
+              value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
           </div>
 
           <div>
-            <label style={labelStyle}>Deskripsi lengkap</label>
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
+            <label style={{ fontSize: '14px', color: '#8892a4', display: 'block', marginBottom: '8px' }}>Deskripsi lengkap</label>
+            <textarea style={{ ...inputStyle, minHeight: '120px', resize: 'vertical' }}
               placeholder="Jelaskan apa yang kamu butuhkan, gaya yang diinginkan, referensi, dll."
-              rows={4}
-              style={{ ...inputStyle, resize: 'vertical' }}
-            />
+              value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           </div>
 
           <div>
-            <label style={labelStyle}>Kategori</label>
-            <select
-              value={category}
-              onChange={e => setCategory(e.target.value)}
-              style={{ ...inputStyle, cursor: 'pointer' }}
-            >
+            <label style={{ fontSize: '14px', color: '#8892a4', display: 'block', marginBottom: '8px' }}>Kategori</label>
+            <select style={{ ...inputStyle, cursor: 'pointer' }}
+              value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
               <option value="">Pilih kategori...</option>
-              {KATEGORI.map(k => (
-                <option key={k} value={k}>{k}</option>
-              ))}
+              {KATEGORI.map(k => <option key={k} value={k}>{k}</option>)}
             </select>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label style={labelStyle}>Budget minimum (Rp)</label>
-              <input
-                type="number"
-                value={budgetMin}
-                onChange={e => setBudgetMin(e.target.value)}
-                placeholder="200000"
-                style={inputStyle}
-              />
+              <label style={{ fontSize: '14px', color: '#8892a4', display: 'block', marginBottom: '8px' }}>Budget minimum (Rp)</label>
+              <input style={inputStyle} type="number"
+                value={form.budget_min} onChange={e => setForm(f => ({ ...f, budget_min: Number(e.target.value) }))} />
             </div>
             <div>
-              <label style={labelStyle}>Budget maksimum (Rp)</label>
-              <input
-                type="number"
-                value={budgetMax}
-                onChange={e => setBudgetMax(e.target.value)}
-                placeholder="500000"
-                style={inputStyle}
-              />
+              <label style={{ fontSize: '14px', color: '#8892a4', display: 'block', marginBottom: '8px' }}>Budget maksimum (Rp)</label>
+              <input style={inputStyle} type="number"
+                value={form.budget_max} onChange={e => setForm(f => ({ ...f, budget_max: Number(e.target.value) }))} />
             </div>
           </div>
 
           <div>
-            <label style={labelStyle}>Estimasi waktu (hari)</label>
-            <input
-              type="number"
-              value={estimatedDays}
-              onChange={e => setEstimatedDays(e.target.value)}
-              placeholder="7"
-              style={inputStyle}
-            />
+            <label style={{ fontSize: '14px', color: '#8892a4', display: 'block', marginBottom: '8px' }}>Estimasi waktu (hari)</label>
+            <input style={inputStyle} type="number"
+              value={form.estimated_days} onChange={e => setForm(f => ({ ...f, estimated_days: Number(e.target.value) }))} />
           </div>
 
           <div>
-            <label style={labelStyle}>Skills yang dibutuhkan (pisah dengan koma)</label>
-            <input
-              type="text"
-              value={skillsInput}
-              onChange={e => setSkillsInput(e.target.value)}
-              placeholder="cth: Figma, Illustrator, Logo Design"
-              style={inputStyle}
-            />
-            <span style={{ color: '#8892a4', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-              Opsional. Membantu freelancer yang tepat menemukan proyekmu.
-            </span>
+            <label style={{ fontSize: '14px', color: '#8892a4', display: 'block', marginBottom: '8px' }}>Skills yang dibutuhkan (pisah dengan koma)</label>
+            <input style={inputStyle} placeholder="cth: Figma, Illustrator, Logo Design"
+              value={form.skills_required} onChange={e => setForm(f => ({ ...f, skills_required: e.target.value }))} />
+            <p style={{ color: '#8892a4', fontSize: '12px', marginTop: '6px' }}>Opsional. Membantu freelancer yang tepat menemukan proyekmu.</p>
           </div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: '#4F6EF7',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '15px',
-              fontWeight: 'bold',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
-              marginTop: '8px',
-            }}
-          >
+          {error && <div style={{ backgroundColor: '#2d1515', border: '1px solid #EF4444', borderRadius: '8px', padding: '12px 16px', color: '#EF4444', fontSize: '14px' }}>{error}</div>}
+
+          <button onClick={handleSubmit} disabled={loading}
+            style={{ padding: '14px', backgroundColor: loading ? '#2a3a6a' : '#4F6EF7', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}>
             {loading ? 'Memposting...' : 'Post Proyek'}
           </button>
         </div>
