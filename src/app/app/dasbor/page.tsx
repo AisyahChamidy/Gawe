@@ -25,7 +25,7 @@ export default function DasborPage() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
-    router.push('/auth/masuk')
+    router.push('/')
   }
 
   if (loading) {
@@ -53,30 +53,48 @@ export default function DasborPage() {
     }}>
       {/* Navbar */}
       <div style={{
-        backgroundColor: '#131929',
-        borderBottom: '1px solid #1e2d4a',
-        padding: '16px 32px',
+        backgroundColor: '#111827',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        padding: '0 32px',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        height: 60,
       }}>
-        <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#4F6EF7' }}>
+        <span style={{ fontSize: '18px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>
           Gawe
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ color: '#8892a4', fontSize: '14px' }}>
+        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+          <a href="/app/dasbor" style={{ color: 'white', textDecoration: 'none', fontSize: '13px', fontWeight: '600', padding: '6px 14px', borderRadius: '6px', backgroundColor: 'rgba(79,110,247,0.15)' }}>
+            Dashboard
+          </a>
+          <a href="/app/jelajah" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: '13px', fontWeight: '500', padding: '6px 14px', borderRadius: '6px' }}>
+            Jelajah Proyek
+          </a>
+          <a href="/app/lamaran" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: '13px', fontWeight: '500', padding: '6px 14px', borderRadius: '6px' }}>
+            Lamaranku
+          </a>
+          <a href="/klien/post-proyek" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: '13px', fontWeight: '500', padding: '6px 14px', borderRadius: '6px' }}>
+            Post Proyek
+          </a>
+          <a href="/klien/proyek" style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: '13px', fontWeight: '500', padding: '6px 14px', borderRadius: '6px' }}>
+            Proyekku
+          </a>
+          <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)', margin: '0 8px' }} />
+          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
             {user?.user_metadata?.full_name || user?.email}
           </span>
           <button
             onClick={handleLogout}
             style={{
-              padding: '8px 16px',
+              padding: '6px 14px',
               backgroundColor: 'transparent',
-              border: '1px solid #1e2d4a',
-              borderRadius: '8px',
-              color: '#8892a4',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '6px',
+              color: 'rgba(255,255,255,0.5)',
               cursor: 'pointer',
-              fontSize: '13px'
+              fontSize: '13px',
+              marginLeft: '4px',
             }}
           >
             Keluar
