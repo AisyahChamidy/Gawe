@@ -40,7 +40,6 @@ export default function KlienProyekPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/masuk'); return }
 
-    // Step 1: ambil projects + applications
     const { data: projectsData } = await supabase
       .from('projects')
       .select('id, title, category, budget_min, budget_max, status, applications(id, status, created_at, freelancer_id)')
@@ -49,47 +48,30 @@ export default function KlienProyekPage() {
 
     if (!projectsData) { setLoading(false); return }
 
-    // Step 2: ambil semua freelancer_id unik
-    const freelancerIds = [...new Set(
-      projectsData.flatMap((p: any) => (p.applications || []).map((a: any) => a.freelancer_id))
-    )]
-
-    // Step 3: fetch nama dari profiles
-    let namesMap: Record<string, string> = {}
-    if (freelancerIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', freelancerIds)
-      
-      ;(profiles || []).forEach((p: any) => {
-        namesMap[p.id] = p.full_name || 'Anonim'
-      })
+    const ids = [...new Set(projectsData.flatMap((p: any) => (p.applications || []).map((a: any) => a.freelancer_id)))]
+    let names: Record<string, string> = {}
+    if (ids.length > 0) {
+      const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', ids)
+      ;(profiles || []).forEach((p: any) => { names[p.id] = p.full_name || 'Anonim' })
     }
 
-    // Step 4: gabungkan nama ke aplikasi
-    const enriched = projectsData.map((p: any) => ({
+    setProjects(projectsData.map((p: any) => ({
       ...p,
-      applications: (p.applications || []).map((a: any) => ({
-        ...a,
-        freelancer_name: namesMap[a.freelancer_id] || 'Pengguna',
-      }))
-    }))
-
-    setProjects(enriched)
+      applications: (p.applications || []).map((a: any) => ({ ...a, freelancer_name: names[a.freelancer_id] || 'Pengguna' }))
+    })))
     setLoading(false)
   }
 
-  async function handleTerima(applicationId: string) {
-    setActionLoading(applicationId)
-    await supabase.from('applications').update({ status: 'accepted' }).eq('id', applicationId)
+  async function handleTerima(id: string) {
+    setActionLoading(id)
+    await supabase.from('applications').update({ status: 'accepted' }).eq('id', id)
     await fetchProjects()
     setActionLoading(null)
   }
 
-  async function handleTolak(applicationId: string) {
-    setActionLoading(applicationId)
-    await supabase.from('applications').update({ status: 'rejected' }).eq('id', applicationId)
+  async function handleTolak(id: string) {
+    setActionLoading(id)
+    await supabase.from('applications').update({ status: 'rejected' }).eq('id', id)
     await fetchProjects()
     setActionLoading(null)
   }
@@ -100,18 +82,15 @@ export default function KlienProyekPage() {
       <div style={{ padding: '40px 32px', maxWidth: '900px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Proyekku</h1>
         <p style={{ color: '#8892a4', marginBottom: '32px' }}>
-          {loading ? 'Memuat...' : `${projects.length} proyek diposting`}
+          {loading ? 'Memuat...' : projects.length + ' proyek diposting'}
         </p>
-
         {loading ? (
           <div style={{ color: '#8892a4', textAlign: 'center', padding: '60px' }}>Memuat...</div>
         ) : projects.length === 0 ? (
           <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '60px', textAlign: 'center', color: '#8892a4' }}>
             <div style={{ fontSize: '40px', marginBottom: '16px' }}>📋</div>
             <p>Belum ada proyek. Yuk post proyek pertamamu!</p>
-            <a href="/klien/post-proyek" style={{ display: 'inline-block', marginTop: '16px', padding: '10px 20px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
-              Post Proyek
-            </a>
+            <a href="/klien/post-proyek" style={{ display: 'inline-block', marginTop: '16px', padding: '10px 20px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>Post Proyek</a>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -120,20 +99,13 @@ export default function KlienProyekPage() {
                 <div style={{ padding: '20px 24px', borderBottom: '1px solid #1e2d4a' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <span style={{ backgroundColor: '#1a2340', color: '#4F6EF7', fontSize: '11px', padding: '2px 8px', borderRadius: '20px', marginRight: '8px' }}>
-                        {project.category}
-                      </span>
+                      <span style={{ backgroundColor: '#1a2340', color: '#4F6EF7', fontSize: '11px', padding: '2px 8px', borderRadius: '20px' }}>{project.category}</span>
                       <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '8px 0 4px' }}>{project.title}</h2>
-                      <span style={{ color: '#22D3EE', fontSize: '14px' }}>
-                        {formatRupiah(project.budget_min)} – {formatRupiah(project.budget_max)}
-                      </span>
+                      <span style={{ color: '#22D3EE', fontSize: '14px' }}>{formatRupiah(project.budget_min)} – {formatRupiah(project.budget_max)}</span>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ color: '#8892a4', fontSize: '13px' }}>{project.applications?.length || 0} pelamar</div>
-                    </div>
+                    <div style={{ color: '#8892a4', fontSize: '13px' }}>{project.applications?.length || 0} pelamar</div>
                   </div>
                 </div>
-
                 <div style={{ padding: '16px 24px' }}>
                   {!project.applications || project.applications.length === 0 ? (
                     <p style={{ color: '#8892a4', fontSize: '14px', textAlign: 'center', padding: '20px' }}>Belum ada pelamar</p>
