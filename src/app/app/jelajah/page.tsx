@@ -39,7 +39,7 @@ export default function JelajahPage() {
     let r = projects
     if (kategori !== 'Semua') r = r.filter(p => p.category === kategori)
     if (search.trim()) r = r.filter(p => p.title.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase()))
-    r = r.filter(p => p.budget_min <= budgetMax)
+    r = r.filter(p => p.budget_max <= budgetMax)
     setFiltered(r)
   }, [search, kategori, budgetMax, projects])
 
