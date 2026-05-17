@@ -54,6 +54,7 @@ export default function Navbar() {
         <a href="/app/dasbor" style={linkStyle('/app/dasbor')}>Dashboard</a>
         <a href="/app/jelajah" style={linkStyle('/app/jelajah')}>Jelajah Proyek</a>
         <a href="/app/lamaran" style={linkStyle('/app/lamaran')}>Lamaranku</a>
+        <a href="/app/profil" style={linkStyle('/app/profil')}>Profil</a>
         <a href="/klien/post-proyek" style={linkStyle('/klien/post-proyek')}>Post Proyek</a>
         <a href="/klien/proyek" style={linkStyle('/klien/proyek')}>Proyekku</a>
 
