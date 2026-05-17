@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
 
-export default function Navbar() {
+export default function NavbarKlien() {
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
   const pathname = usePathname()
@@ -40,14 +40,16 @@ export default function Navbar() {
         <span style={{ fontSize: '18px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
       </a>
       <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
-        {link('/app/dasbor', 'Dashboard')}
-        {link('/app/jelajah', 'Jelajah Proyek')}
-        {link('/app/lamaran', 'Lamaranku')}
-        {link('/app/keuangan', 'Keuangan')}
+        {link('/klien/dasbor', 'Dashboard')}
+        {link('/klien/proyek', 'Proyekku')}
+        {link('/klien/post-proyek', '+ Post Proyek')}
         <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)', margin: '0 8px' }} />
         <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {user?.user_metadata?.full_name || user?.email}
         </span>
+        <a href="/app/dasbor" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', padding: '4px 10px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', textDecoration: 'none', marginLeft: '4px' }}>
+          Mode Freelancer
+        </a>
         <button onClick={handleLogout} style={{
           padding: '6px 14px', backgroundColor: 'transparent',
           border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px',

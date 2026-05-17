@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
+import Navbar from '@/components/NavbarKlien'
 
 const KATEGORI = [
   'Desain Grafis', 'Web Development', 'Social Media', 'Penulisan Konten',
