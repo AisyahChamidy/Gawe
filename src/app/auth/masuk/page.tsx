@@ -129,6 +129,12 @@ export default function MasukPage() {
         </button>
 
         <p style={{ color: '#8892a4', textAlign: 'center', marginTop: '24px', fontSize: '14px' }}>
+          Lupa password?{' '}
+          <Link href="/auth/lupa-password" style={{ color: '#8892a4' }}>
+            Reset di sini
+          </Link>
+        </p>
+        <p style={{ textAlign: 'center', color: '#8892a4', marginTop: '12px', fontSize: '14px' }}>
           Belum punya akun?{' '}
           <Link href="/auth/daftar" style={{ color: '#4F6EF7' }}>
             Daftar
