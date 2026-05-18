@@ -44,6 +44,12 @@ export default function Navbar() {
         {link('/app/jelajah', 'Jelajah Proyek')}
         {link('/app/lamaran', 'Lamaranku')}
         {link('/app/keuangan', 'Keuangan')}
+        <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '20px', backgroundColor: 'rgba(79,110,247,0.15)', color: '#4F6EF7', border: '1px solid rgba(79,110,247,0.3)', fontWeight: 'bold' }}>
+          👨‍💻 Mode Freelancer
+        </span>
+        <a href="/klien/dasbor" style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', textDecoration: 'none', marginRight: '4px' }}>
+          Ke Mode Klien →
+        </a>
         <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)', margin: '0 8px' }} />
         <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {user?.user_metadata?.full_name || user?.email}

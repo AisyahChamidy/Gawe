@@ -24,7 +24,14 @@ export default function MasukPage() {
       setError('Email atau password salah')
       setLoading(false)
     } else {
-      router.push('/app/dasbor')
+      // Cek role dari profiles
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single()
+      const role = profile?.role || 'freelancer'
+      if (role === 'client') {
+        router.push('/klien/dasbor')
+      } else {
+        router.push('/app/dasbor')
+      }
     }
   }
 

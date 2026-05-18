@@ -44,6 +44,12 @@ export default function NavbarKlien() {
         {link('/klien/proyek', 'Proyekku')}
         {link('/klien/keuangan', 'Keuangan')}
         {link('/klien/post-proyek', '+ Post Proyek')}
+        <span style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '20px', backgroundColor: 'rgba(139,92,246,0.15)', color: '#8B5CF6', border: '1px solid rgba(139,92,246,0.3)', fontWeight: 'bold' }}>
+          🏢 Mode Klien
+        </span>
+        <a href="/app/dasbor" style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.5)', textDecoration: 'none', marginRight: '4px' }}>
+          Ke Mode Freelancer →
+        </a>
         <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)', margin: '0 8px' }} />
         <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {user?.user_metadata?.full_name || user?.email}
