@@ -132,7 +132,10 @@ export default function KlienProyekPage() {
                                 </button>
                               </>
                             ) : app.status === 'accepted' ? (
-                              <span style={{ backgroundColor: '#152d1e', color: '#10B981', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' }}>✓ Diterima</span>
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <a href={'/klien/proyek/' + project.id} style={{ padding: '4px 12px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', textDecoration: 'none' }}>💬 Chat</a>
+                                <span style={{ backgroundColor: '#152d1e', color: '#10B981', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' }}>✓ Diterima</span>
+                              </div>
                             ) : (
                               <span style={{ backgroundColor: '#2d1515', color: '#EF4444', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' }}>Ditolak</span>
                             )}

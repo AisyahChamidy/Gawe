@@ -89,9 +89,16 @@ export default function LamaranPage() {
                       </span>
                     </div>
                   </div>
-                  <span style={{ backgroundColor: s.bg, color: s.color, fontSize: '12px', padding: '5px 12px', borderRadius: '20px', fontWeight: 'bold', whiteSpace: 'nowrap', marginLeft: '16px' }}>
-                    {s.label}
-                  </span>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: '16px' }}>
+                    {item.status === 'accepted' && (
+                      <a href={'/app/proyek/' + item.projects?.id} style={{ padding: '5px 12px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', textDecoration: 'none' }}>
+                        💬 Chat
+                      </a>
+                    )}
+                    <span style={{ backgroundColor: s.bg, color: s.color, fontSize: '12px', padding: '5px 12px', borderRadius: '20px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                      {s.label}
+                    </span>
+                  </div>
                 </div>
               )
             })}
