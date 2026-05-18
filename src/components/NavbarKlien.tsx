@@ -42,6 +42,7 @@ export default function NavbarKlien() {
       <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
         {link('/klien/dasbor', 'Dashboard')}
         {link('/klien/proyek', 'Proyekku')}
+        {link('/klien/keuangan', 'Keuangan')}
         {link('/klien/post-proyek', '+ Post Proyek')}
         <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)', margin: '0 8px' }} />
         <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
