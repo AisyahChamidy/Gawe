@@ -252,7 +252,7 @@ export default function LandingPage() {
           </div>
           <nav style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <Link href="#cara-kerja" className="nav-link">Cara Kerja</Link>
-            <Link href="/app/jelajah" className="nav-link">Proyek</Link>
+            <Link href="/proyek" className="nav-link">Proyek</Link>
             <Link href="/auth/masuk" className="nav-link">Masuk</Link>
             <div style={{ width: 1, height: 20, backgroundColor: 'var(--border)', margin: '0 8px' }} />
             <Link href="/auth/daftar" className="btn-primary" style={{ padding: '8px 18px', fontSize: 13 }}>
