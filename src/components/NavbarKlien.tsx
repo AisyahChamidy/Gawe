@@ -54,9 +54,7 @@ export default function NavbarKlien() {
         <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {user?.user_metadata?.full_name || user?.email}
         </span>
-        <a href="/app/dasbor" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', padding: '4px 10px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', textDecoration: 'none', marginLeft: '4px' }}>
-          Mode Freelancer
-        </a>
+
         <button onClick={handleLogout} style={{
           padding: '6px 14px', backgroundColor: 'transparent',
           border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px',
