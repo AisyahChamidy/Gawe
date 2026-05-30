@@ -20,7 +20,7 @@ export default function DaftarPage() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -31,6 +31,15 @@ export default function DaftarPage() {
     if (error) {
       setError(error.message)
       setLoading(false)
+      return
+    }
+
+    if (data.user) {
+      await supabase.from('profiles').update({ role }).eq('id', data.user.id)
+    }
+
+    if (role === 'client') {
+      router.push('/klien/dasbor')
     } else {
       router.push('/app/dasbor')
     }
