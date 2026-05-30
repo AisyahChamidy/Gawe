@@ -66,7 +66,7 @@ export default function NavbarKlien() {
     <div style={{
       backgroundColor: '#0F1628',
       borderBottom: '1px solid rgba(255,255,255,0.08)',
-      padding: '0 32px',
+      padding: '0 clamp(16px, 4vw, 32px)',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -75,6 +75,12 @@ export default function NavbarKlien() {
       top: 0,
       zIndex: 50,
     }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .nav-links-kl { display: none !important; }
+          .nav-mode-kl { display: none !important; }
+        }
+      `}</style>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <a href="/klien/dasbor" style={{ textDecoration: 'none' }}>
           <span style={{ fontSize: '18px', fontWeight: '800', color: '#4F6EF7', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
@@ -86,7 +92,7 @@ export default function NavbarKlien() {
         }}>🏢 Mode Klien</span>
       </div>
 
-      <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+      <div className="nav-links-kl" style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
         {navLinks.map(({ href, label }) => (
           <a key={href} href={href} style={{
             color: isActive(href) ? 'white' : 'rgba(255,255,255,0.5)',
@@ -105,7 +111,7 @@ export default function NavbarKlien() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Tombol mode switch + konfirmasi */}
-        <div style={{ position: 'relative' }}>
+        <div className="nav-mode-kl" style={{ position: 'relative' }}>
           <button
             onClick={handleKeFreelancer}
             style={{

@@ -61,7 +61,7 @@ export default function PostProyekPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
       <NavbarKlien />
-      <div style={{ padding: '40px 32px', maxWidth: '640px', margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(20px, 5vw, 40px) clamp(16px, 4vw, 32px)', maxWidth: '640px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Post Proyek Baru</h1>
         <p style={{ color: '#8892a4', marginBottom: '32px' }}>Isi detail proyekmu. Freelancer akan melihat dan melamar proyek ini.</p>
 
@@ -88,7 +88,7 @@ export default function PostProyekPage() {
             </select>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
             <div>
               <label style={{ fontSize: '14px', color: '#8892a4', display: 'block', marginBottom: '8px' }}>Budget minimum (Rp)</label>
               <input style={inputStyle} type="number"

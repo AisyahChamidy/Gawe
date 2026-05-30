@@ -54,8 +54,14 @@ export default function JelajahPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .filter-scroll { flex-wrap: nowrap !important; overflow-x: auto !important; padding-bottom: 4px; }
+          .filter-scroll::-webkit-scrollbar { display: none; }
+        }
+      `}</style>
       <Navbar />
-      <div style={{ padding: '40px 32px', maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(20px, 5vw, 40px) clamp(16px, 4vw, 32px)', maxWidth: '900px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Jelajah Proyek</h1>
         <p style={{ color: '#8892a4', marginBottom: '24px' }}>{loading ? 'Memuat...' : filtered.length + ' proyek tersedia'}</p>
 
@@ -63,7 +69,7 @@ export default function JelajahPage() {
           <input type="text" placeholder="Cari proyek atau skill..." value={search} onChange={e => setSearch(e.target.value)}
             style={{ width: '100%', padding: '10px 14px', backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }} />
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: 1 }}>
+            <div className="filter-scroll" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: 1 }}>
               {KATEGORI.map(k => (
                 <button key={k} onClick={() => setKategori(k)}
                   style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', border: '1px solid', borderColor: kategori === k ? '#4F6EF7' : '#1e2d4a', backgroundColor: kategori === k ? 'rgba(79,110,247,0.2)' : 'transparent', color: kategori === k ? '#4F6EF7' : '#8892a4' }}>

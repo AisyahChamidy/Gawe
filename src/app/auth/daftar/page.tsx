@@ -65,10 +65,10 @@ export default function DaftarPage() {
     <div style={{
       minHeight: '100vh', backgroundColor: '#0A0E1A',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: 'sans-serif',
+      fontFamily: 'sans-serif', padding: '16px',
     }}>
       <div style={{
-        backgroundColor: '#131929', padding: '40px', borderRadius: '12px',
+        backgroundColor: '#131929', padding: 'clamp(24px, 5vw, 40px)', borderRadius: '12px',
         width: '100%', maxWidth: step === 'pilih-peran' ? '480px' : '420px',
         border: '1px solid #1e2d4a',
       }}>

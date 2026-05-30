@@ -79,7 +79,7 @@ export default function KlienProyekPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
       <NavbarKlien />
-      <div style={{ padding: '40px 32px', maxWidth: '900px', margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(20px, 5vw, 40px) clamp(16px, 4vw, 32px)', maxWidth: '900px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Proyekku</h1>
         <p style={{ color: '#8892a4', marginBottom: '32px' }}>
           {loading ? 'Memuat...' : projects.length + ' proyek diposting'}
@@ -88,9 +88,10 @@ export default function KlienProyekPage() {
           <div style={{ color: '#8892a4', textAlign: 'center', padding: '60px' }}>Memuat...</div>
         ) : projects.length === 0 ? (
           <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '60px', textAlign: 'center', color: '#8892a4' }}>
-            <div style={{ fontSize: '40px', marginBottom: '16px' }}>📋</div>
-            <p>Belum ada proyek. Yuk post proyek pertamamu!</p>
-            <a href="/klien/post-proyek" style={{ display: 'inline-block', marginTop: '16px', padding: '10px 20px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>Post Proyek</a>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
+            <p style={{ color: 'white', fontWeight: 'bold', fontSize: '16px', marginBottom: '8px' }}>Belum ada proyek yang dipost.</p>
+            <p style={{ color: '#8892a4', fontSize: '14px', marginBottom: '20px' }}>Mulai posting proyek dan temukan freelancer yang tepat!</p>
+            <a href="/klien/post-proyek" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: '#8B5CF6', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>+ Post Proyek Pertamamu</a>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -112,7 +113,7 @@ export default function KlienProyekPage() {
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {project.applications.map(app => (
-                        <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: '#0A0E1A', borderRadius: '8px', border: '1px solid #1e2d4a' }}>
+                        <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: '#0A0E1A', borderRadius: '8px', border: '1px solid #1e2d4a', flexWrap: 'wrap', gap: '8px' }}>
                           <div>
                             <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{app.freelancer_name}</div>
                             <div style={{ color: '#8892a4', fontSize: '12px', marginTop: '2px' }}>

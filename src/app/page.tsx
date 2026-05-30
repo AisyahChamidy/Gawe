@@ -231,6 +231,24 @@ export default function LandingPage() {
         ::-webkit-scrollbar-track { background: #0A0E1A; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+        @media (max-width: 640px) {
+          .nav-hide-mobile { display: none !important; }
+          .nav-inner { padding: 0 16px !important; }
+          .hero-section { padding: 56px 16px 40px !important; }
+          .hero-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .hero-right { display: none !important; }
+          .bento-section { padding: 60px 16px !important; }
+          .bento-grid { grid-template-columns: 1fr !important; }
+          .bento-grid > * { grid-column: 1 !important; grid-row: auto !important; }
+          .how-section-inner { padding: 60px 16px !important; }
+          .how-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+          .how-sticky { position: static !important; }
+          .dual-cta-section { padding: 60px 16px !important; }
+          .dual-cta-grid { grid-template-columns: 1fr !important; }
+          .final-cta-inner { padding: 64px 16px !important; }
+          .footer-inner { padding: 24px 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+        }
       `}</style>
 
       {/* ── NAV ── */}
@@ -245,16 +263,18 @@ export default function LandingPage() {
           backdropFilter: 'blur(20px)',
         }}
       >
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="nav-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#22D3EE', boxShadow: '0 0 8px rgba(34,211,238,0.6)' }} />
             <span className="outfit" style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.5px' }}>Gawe</span>
           </div>
           <nav style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Link href="#cara-kerja" className="nav-link">Cara Kerja</Link>
-            <Link href="/proyek" className="nav-link">Proyek</Link>
-            <Link href="/auth/masuk" className="nav-link">Masuk</Link>
-            <div style={{ width: 1, height: 20, backgroundColor: 'var(--border)', margin: '0 8px' }} />
+            <span className="nav-hide-mobile" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Link href="#cara-kerja" className="nav-link">Cara Kerja</Link>
+              <Link href="/proyek" className="nav-link">Proyek</Link>
+              <Link href="/auth/masuk" className="nav-link">Masuk</Link>
+              <div style={{ width: 1, height: 20, backgroundColor: 'var(--border)', margin: '0 8px' }} />
+            </span>
             <Link href="/auth/daftar" className="btn-primary" style={{ padding: '8px 18px', fontSize: 13 }}>
               Daftar Gratis <ArrowRight size={13} strokeWidth={2} />
             </Link>
@@ -263,8 +283,8 @@ export default function LandingPage() {
       </motion.header>
 
       {/* ── HERO ── */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '100px 32px 80px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: 64, alignItems: 'start' }}>
+      <section className="hero-section" style={{ maxWidth: 1200, margin: '0 auto', padding: '100px 32px 80px' }}>
+        <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: 64, alignItems: 'start' }}>
 
           {/* Left */}
           <div>
@@ -347,6 +367,7 @@ export default function LandingPage() {
 
           {/* Right — Trust Score Dashboard Card */}
           <motion.div
+            className="hero-right"
             variants={fadeUp} initial="hidden" animate="visible" custom={2}
           >
             <div className="card" style={{
@@ -498,7 +519,7 @@ export default function LandingPage() {
       </div>
 
       {/* ── BENTO FEATURES ── */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px' }}>
+      <section className="bento-section" style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px' }}>
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -515,7 +536,7 @@ export default function LandingPage() {
         </motion.div>
 
         {/* Bento grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 12 }}>
+        <div className="bento-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 12 }}>
 
           {/* Trust Score — col 1-5, row 1-2 */}
           <motion.div
@@ -665,9 +686,9 @@ export default function LandingPage() {
 
       {/* ── HOW IT WORKS ── */}
       <section id="cara-kerja" style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(255,255,255,0.01)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 80, alignItems: 'start' }}>
-            <div style={{ position: 'sticky', top: 100 }}>
+        <div className="how-section-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px' }}>
+          <div className="how-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 80, alignItems: 'start' }}>
+            <div className="how-sticky" style={{ position: 'sticky', top: 100 }}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -730,7 +751,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── DUAL CTA ── */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px' }}>
+      <section className="dual-cta-section" style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px' }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -743,7 +764,7 @@ export default function LandingPage() {
           </h2>
         </motion.div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="dual-cta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {[
             {
               tag: 'Untuk Freelancer', tagColor: '#4F6EF7', tagBg: 'rgba(79,110,247,0.06)', tagBorder: 'rgba(79,110,247,0.12)',
@@ -802,7 +823,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section style={{ borderTop: '1px solid var(--border)', padding: '140px 32px', textAlign: 'center' }}>
+      <section style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="final-cta-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '140px 32px', textAlign: 'center' }}>
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -824,10 +846,12 @@ export default function LandingPage() {
             <Link href="/auth/masuk" style={{ color: '#4F6EF7', textDecoration: 'none', fontWeight: 600 }}>Masuk di sini</Link>
           </p>
         </motion.div>
+        </div>
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ borderTop: '1px solid var(--border)', padding: '32px', maxWidth: 1200, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+      <footer style={{ borderTop: '1px solid var(--border)' }}>
+      <div className="footer-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#22D3EE' }} />
           <span className="outfit" style={{ fontSize: 16, fontWeight: 800 }}>Gawe</span>
@@ -838,6 +862,7 @@ export default function LandingPage() {
             <Link key={l} href={h} style={{ color: 'var(--muted)', textDecoration: 'none', fontSize: 13 }}>{l}</Link>
           ))}
         </div>
+      </div>
       </footer>
     </div>
   )

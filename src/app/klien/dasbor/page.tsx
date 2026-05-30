@@ -50,9 +50,9 @@ export default function DasborKlienPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
       <NavbarKlien />
-      <div style={{ padding: '40px 32px', maxWidth: '1100px', margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(20px, 5vw, 40px) clamp(16px, 4vw, 32px)', maxWidth: '1100px', margin: '0 auto' }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h1 style={{ fontSize: '24px', marginBottom: '4px' }}>Dashboard Klien 👋</h1>
             <p style={{ color: '#8892a4', fontSize: '14px' }}>Halo, {user?.user_metadata?.full_name || 'Klien'}! Kelola proyekmu di sini.</p>
@@ -64,7 +64,7 @@ export default function DasborKlienPage() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', marginBottom: '32px' }}>
           {[
             { label: 'Total Proyek', value: stats.totalProyek, color: '#4F6EF7', icon: '📋' },
             { label: 'Proyek Aktif', value: stats.proyekAktif, color: '#10B981', icon: '⚡' },
@@ -109,7 +109,7 @@ export default function DasborKlienPage() {
         </div>
 
         {/* Quick actions */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
           {[
             { href: '/klien/post-proyek', icon: '✏️', title: 'Post Proyek Baru', desc: 'Cari freelancer untuk proyekmu', bg: '#4F6EF7', color: 'white' },
             { href: '/klien/proyek', icon: '📋', title: 'Kelola Proyek', desc: 'Lihat lamaran & update status', bg: '#131929', color: 'white' },

@@ -44,8 +44,8 @@ export default function DasborPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
       <Navbar />
-      <div style={{ padding: '40px 32px', maxWidth: '1100px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+      <div style={{ padding: 'clamp(20px, 5vw, 40px) clamp(16px, 4vw, 32px)', maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h1 style={{ fontSize: '24px', marginBottom: '4px' }}>Selamat datang, {user?.user_metadata?.full_name || 'Pengguna'}! 👋</h1>
             <p style={{ color: '#8892a4', fontSize: '14px' }}>Pantau perkembangan freelance-mu di sini.</p>
@@ -53,7 +53,7 @@ export default function DasborPage() {
           <a href="/app/profil" style={{ padding: '8px 16px', backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '8px', color: '#4F6EF7', textDecoration: 'none', fontSize: '13px', fontWeight: 'bold' }}>Edit Profil</a>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '32px' }}>
           {[
             { label: 'Lamaran Terkirim', value: stats.terkirim, color: '#4F6EF7' },
             { label: 'Lamaran Diterima', value: stats.diterima, color: '#10B981' },
@@ -72,8 +72,11 @@ export default function DasborPage() {
             <a href="/app/lamaran" style={{ color: '#4F6EF7', textDecoration: 'none', fontSize: '13px' }}>Lihat semua →</a>
           </div>
           {recentApps.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#8892a4' }}>
-              Belum ada lamaran. <a href="/app/jelajah" style={{ color: '#4F6EF7' }}>Jelajah proyek →</a>
+            <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚀</div>
+              <p style={{ color: 'white', fontWeight: 'bold', fontSize: '16px', marginBottom: '8px' }}>Belum ada lamaran</p>
+              <p style={{ color: '#8892a4', fontSize: '14px', marginBottom: '20px' }}>Yuk mulai jelajahi proyek yang tersedia!</p>
+              <a href="/app/jelajah" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>Jelajahi Proyek →</a>
             </div>
           ) : recentApps.map((item: any) => (
             <div key={item.id} style={{ padding: '14px 24px', borderBottom: '1px solid #0d1526', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -88,7 +91,7 @@ export default function DasborPage() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
           <a href="/app/jelajah" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', borderRadius: '12px', padding: '20px 24px', display: 'block' }}>
             <div style={{ fontSize: '20px', marginBottom: '8px' }}>🔍</div>
             <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Jelajah Proyek</div>

@@ -68,7 +68,7 @@ export default function Navbar() {
     <div style={{
       backgroundColor: '#0F1628',
       borderBottom: '1px solid rgba(255,255,255,0.08)',
-      padding: '0 32px',
+      padding: '0 clamp(16px, 4vw, 32px)',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -77,6 +77,12 @@ export default function Navbar() {
       top: 0,
       zIndex: 50,
     }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .nav-links-fl { display: none !important; }
+          .nav-mode-fl { display: none !important; }
+        }
+      `}</style>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <a href="/app/dasbor" style={{ textDecoration: 'none' }}>
           <span style={{ fontSize: '18px', fontWeight: '800', color: '#4F6EF7', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
@@ -88,7 +94,7 @@ export default function Navbar() {
         }}>👨‍💻 Mode Freelancer</span>
       </div>
 
-      <div style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
+      <div className="nav-links-fl" style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
         {navLinks.map(({ href, label }) => (
           <a key={href} href={href} style={{
             color: isActive(href) ? 'white' : 'rgba(255,255,255,0.5)',
@@ -102,7 +108,7 @@ export default function Navbar() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Tombol mode switch + konfirmasi */}
-        <div style={{ position: 'relative' }}>
+        <div className="nav-mode-fl" style={{ position: 'relative' }}>
           <button
             onClick={handleKeKlien}
             style={{

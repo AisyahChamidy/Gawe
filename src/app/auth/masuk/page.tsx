@@ -42,11 +42,12 @@ export default function MasukPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontFamily: 'sans-serif'
+      fontFamily: 'sans-serif',
+      padding: '16px',
     }}>
       <div style={{
         backgroundColor: '#131929',
-        padding: '40px',
+        padding: 'clamp(24px, 5vw, 40px)',
         borderRadius: '12px',
         width: '100%',
         maxWidth: '420px',
