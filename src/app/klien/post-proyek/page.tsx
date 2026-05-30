@@ -7,7 +7,7 @@ import NavbarKlien from '@/components/NavbarKlien'
 
 const KATEGORI = [
   'Desain Grafis', 'Web Development', 'Social Media', 'Penulisan Konten',
-  'Video Editing', 'Fotografi', 'Translasi', 'Data Entry', 'UI/UX Design', 'Lainnya'
+  'Video Editing', 'Fotografi', 'Terjemahan', 'Data Entry', 'UI/UX Design', 'Lainnya'
 ]
 
 export default function PostProyekPage() {
