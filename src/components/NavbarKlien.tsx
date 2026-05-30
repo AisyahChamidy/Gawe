@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 
 export default function NavbarKlien() {
   const [firstName, setFirstName] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string>('client')
   const [showKonfirmasi, setShowKonfirmasi] = useState(false)
   const [aktivasi, setAktivasi] = useState(false)
@@ -16,6 +17,7 @@ export default function NavbarKlien() {
     async function loadUser() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+      setUserId(user.id)
       const { data: profile } = await supabase.from('profiles').select('full_name, role').eq('id', user.id).single()
       const name = profile?.full_name || user.user_metadata?.full_name || user.email || ''
       setFirstName(name.split(' ')[0])
@@ -40,10 +42,15 @@ export default function NavbarKlien() {
 
   async function handleAktifkanFreelancer() {
     setAktivasi(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      await supabase.from('profiles').update({ role: 'both' }).eq('id', user.id)
+    console.log('[NavbarKlien] handleAktifkanFreelancer - userId:', userId)
+    if (!userId) {
+      console.error('[NavbarKlien] userId null, batalkan aktivasi')
+      setAktivasi(false)
+      return
     }
+    const { data, error } = await supabase.from('profiles').update({ role: 'both' }).eq('id', userId)
+    console.log('[NavbarKlien] update result - data:', data, 'error:', error)
+    if (!error) setUserRole('both')
     router.push('/app/dasbor')
   }
 
