@@ -5,6 +5,9 @@ import { useRouter, usePathname } from 'next/navigation'
 
 export default function NavbarKlien() {
   const [firstName, setFirstName] = useState('')
+  const [userRole, setUserRole] = useState<string>('client')
+  const [showKonfirmasi, setShowKonfirmasi] = useState(false)
+  const [aktivasi, setAktivasi] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
@@ -13,9 +16,10 @@ export default function NavbarKlien() {
     async function loadUser() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).single()
+      const { data: profile } = await supabase.from('profiles').select('full_name, role').eq('id', user.id).single()
       const name = profile?.full_name || user.user_metadata?.full_name || user.email || ''
       setFirstName(name.split(' ')[0])
+      setUserRole(profile?.role || 'client')
     }
     loadUser()
   }, [])
@@ -24,6 +28,23 @@ export default function NavbarKlien() {
     await supabase.auth.signOut()
     router.push('/')
     router.refresh()
+  }
+
+  async function handleKeFreelancer() {
+    if (userRole === 'freelancer' || userRole === 'both') {
+      router.push('/app/dasbor')
+    } else {
+      setShowKonfirmasi(true)
+    }
+  }
+
+  async function handleAktifkanFreelancer() {
+    setAktivasi(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('profiles').update({ role: 'both' }).eq('id', user.id)
+    }
+    router.push('/app/dasbor')
   }
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
@@ -76,11 +97,57 @@ export default function NavbarKlien() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <a href="/app/dasbor" style={{
-          fontSize: '12px', padding: '4px 10px', borderRadius: '6px',
-          border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)',
-          textDecoration: 'none',
-        }}>Ke Mode Freelancer →</a>
+        {/* Tombol mode switch + konfirmasi */}
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={handleKeFreelancer}
+            style={{
+              fontSize: '12px', padding: '4px 10px', borderRadius: '6px',
+              border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)',
+              background: 'transparent', cursor: 'pointer',
+            }}
+          >
+            Ke Mode Freelancer →
+          </button>
+
+          {showKonfirmasi && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+              backgroundColor: '#131929', border: '1px solid #1e2d4a',
+              borderRadius: '12px', padding: '16px', width: '280px',
+              zIndex: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            }}>
+              <p style={{ color: 'white', fontSize: '13px', lineHeight: '1.5', marginBottom: '12px' }}>
+                Aktifkan juga mode Freelancer? Kamu bisa apply proyek setelah ini.
+              </p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={handleAktifkanFreelancer}
+                  disabled={aktivasi}
+                  style={{
+                    flex: 1, padding: '8px', backgroundColor: '#4F6EF7', color: 'white',
+                    border: 'none', borderRadius: '6px', fontSize: '12px',
+                    fontWeight: 'bold', cursor: aktivasi ? 'not-allowed' : 'pointer',
+                    opacity: aktivasi ? 0.7 : 1,
+                  }}
+                >
+                  {aktivasi ? 'Mengaktifkan...' : 'Ya, aktifkan'}
+                </button>
+                <button
+                  onClick={() => setShowKonfirmasi(false)}
+                  style={{
+                    flex: 1, padding: '8px', backgroundColor: 'transparent',
+                    color: '#8892a4', border: '1px solid #1e2d4a',
+                    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+                  }}
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
         {firstName && (
           <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
