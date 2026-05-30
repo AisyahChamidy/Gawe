@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/NavbarKlien'
+import NavbarKlien from '@/components/NavbarKlien'
 
 const KATEGORI = [
   'Desain Grafis', 'Web Development', 'Social Media', 'Penulisan Konten',
@@ -60,7 +60,7 @@ export default function PostProyekPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
-      <Navbar />
+      <NavbarKlien />
       <div style={{ padding: '40px 32px', maxWidth: '640px', margin: '0 auto' }}>
         <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Post Proyek Baru</h1>
         <p style={{ color: '#8892a4', marginBottom: '32px' }}>Isi detail proyekmu. Freelancer akan melihat dan melamar proyek ini.</p>
