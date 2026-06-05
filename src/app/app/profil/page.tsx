@@ -13,6 +13,8 @@ export default function ProfilPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [trustScore, setTrustScore] = useState(10)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -25,11 +27,26 @@ export default function ProfilPage() {
       if (p) {
         setForm({ full_name: p.full_name || '', headline: p.headline || '', bio: p.bio || '', city: p.city || '', skills: (p.skills || []).join(', ') })
         setTrustScore(p.trust_score || 10)
+        setAvatarUrl(p.avatar_url || null)
       }
       setLoading(false)
     }
     load()
   }, [])
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+    setUploadingAvatar(true)
+    const ext = file.name.split('.').pop()
+    const path = `${user.id}/avatar.${ext}`
+    await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+    const publicUrl = urlData.publicUrl
+    await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', user.id)
+    setAvatarUrl(publicUrl + '?t=' + Date.now())
+    setUploadingAvatar(false)
+  }
 
   async function handleSave() {
     setSaving(true)
@@ -60,10 +77,27 @@ export default function ProfilPage() {
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
       <Navbar />
       <div style={{ padding: '40px 32px', maxWidth: '700px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-          <div>
-            <h1 style={{ fontSize: '28px', marginBottom: '4px' }}>Edit Profil</h1>
-            <p style={{ color: '#8892a4', fontSize: '14px' }}>Profil lengkap = Trust Score tinggi = lebih mudah dapat proyek</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            {/* Avatar */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar"
+                  style={{ width: 72, height: 72, borderRadius: '12px', objectFit: 'cover', border: '2px solid #1e2d4a' }} />
+              ) : (
+                <div style={{ width: 72, height: 72, borderRadius: '12px', backgroundColor: '#4F6EF7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: '800', color: 'white' }}>
+                  {(form.full_name || user?.email || '?')[0].toUpperCase()}
+                </div>
+              )}
+              <label style={{ position: 'absolute', bottom: -6, right: -6, backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '6px', padding: '3px 7px', fontSize: '11px', color: '#4F6EF7', cursor: 'pointer', fontWeight: '600' }}>
+                {uploadingAvatar ? '...' : 'Ganti'}
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+              </label>
+            </div>
+            <div>
+              <h1 style={{ fontSize: '24px', marginBottom: '4px' }}>Edit Profil</h1>
+              <p style={{ color: '#8892a4', fontSize: '13px' }}>Profil lengkap = Trust Score tinggi</p>
+            </div>
           </div>
           <div style={{ backgroundColor: '#131929', border: '1px solid #22D3EE', borderRadius: '12px', padding: '16px 24px', textAlign: 'center' }}>
             <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#22D3EE' }}>{trustScore}</div>

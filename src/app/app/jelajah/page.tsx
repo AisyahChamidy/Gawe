@@ -108,7 +108,9 @@ export default function JelajahPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div>
                       <span style={{ backgroundColor: '#1a2340', color: '#4F6EF7', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'inline-block' }}>{project.category}</span>
-                      <h2 style={{ fontSize: '18px', margin: '8px 0 0', fontWeight: 'bold' }}>{project.title}</h2>
+                      <a href={`/proyek/${project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <h2 style={{ fontSize: '18px', margin: '8px 0 0', fontWeight: 'bold', cursor: 'pointer' }}>{project.title}</h2>
+                      </a>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
                       <div style={{ color: '#22D3EE', fontWeight: 'bold', fontSize: '16px' }}>{fmt(project.budget_min)} – {fmt(project.budget_max)}</div>
