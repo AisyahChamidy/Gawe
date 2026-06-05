@@ -61,6 +61,7 @@ export default function Navbar() {
     { href: '/app/jelajah', label: 'Jelajah Proyek' },
     { href: '/app/lamaran', label: 'Lamaranku' },
     { href: '/app/profil', label: 'Profil' },
+    { href: '/app/profil/skill-test', label: 'Skill Test' },
     { href: '/app/keuangan', label: 'Keuangan' },
   ]
 

@@ -99,9 +99,25 @@ export default function ProfilPage() {
               <p style={{ color: '#8892a4', fontSize: '13px' }}>Profil lengkap = Trust Score tinggi</p>
             </div>
           </div>
-          <div style={{ backgroundColor: '#131929', border: '1px solid #22D3EE', borderRadius: '12px', padding: '16px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#22D3EE' }}>{trustScore}</div>
-            <div style={{ color: '#8892a4', fontSize: '12px' }}>Trust Score</div>
+          <div style={{ backgroundColor: '#131929', border: '1px solid rgba(34,211,238,0.4)', borderRadius: '12px', padding: '16px 20px', minWidth: '180px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '6px' }}>
+              <span style={{ fontSize: '32px', fontWeight: '800', color: '#22D3EE', fontFamily: 'Outfit, sans-serif' }}>{trustScore}</span>
+              <span style={{ fontSize: '14px', color: '#8892a4' }}>/100</span>
+            </div>
+            <div style={{ width: '100%', height: '4px', backgroundColor: '#1e2d4a', borderRadius: '2px', marginBottom: '8px', overflow: 'hidden' }}>
+              <div style={{ width: `${Math.min(trustScore, 100)}%`, height: '100%', backgroundColor: '#22D3EE', borderRadius: '2px' }} />
+            </div>
+            <div style={{ fontSize: '11px', color: '#8892a4', lineHeight: '1.6' }}>
+              <div>+10 dasar</div>
+              {form.full_name && <div style={{ color: '#10B981' }}>+5 nama lengkap</div>}
+              {form.headline && <div style={{ color: '#10B981' }}>+5 headline</div>}
+              {form.bio && form.bio.length > 50 && <div style={{ color: '#10B981' }}>+5 bio</div>}
+              {form.city && <div style={{ color: '#10B981' }}>+3 kota</div>}
+              {form.skills && <div style={{ color: '#10B981' }}>+7 skills</div>}
+            </div>
+            <a href="/app/profil/skill-test" style={{ display: 'block', marginTop: '10px', fontSize: '11px', color: '#4F6EF7', textDecoration: 'none', fontWeight: '600' }}>
+              + Ikuti Skill Test →
+            </a>
           </div>
         </div>
 
