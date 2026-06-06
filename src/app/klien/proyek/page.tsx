@@ -65,12 +65,17 @@ export default function KlienProyekPage() {
 
   async function handleTerima(appId: string, projectId: string, freelancerId: string) {
     setActionLoading(appId)
-    await supabase.from('applications').update({ status: 'accepted' }).eq('id', appId)
-    // Update project status ke in_review + set freelancer terpilih
-    await supabase.from('projects').update({
+    console.log('[handleTerima] appId:', appId, '| projectId:', projectId, '| freelancerId:', freelancerId)
+
+    const { error: appErr } = await supabase.from('applications').update({ status: 'accepted' }).eq('id', appId)
+    console.log('[handleTerima] application update error:', appErr)
+
+    const { error: projErr } = await supabase.from('projects').update({
       status: 'in_review',
       selected_freelancer_id: freelancerId,
     }).eq('id', projectId)
+    console.log('[handleTerima] project update error:', projErr)
+
     await fetchProjects()
     setActionLoading(null)
   }
