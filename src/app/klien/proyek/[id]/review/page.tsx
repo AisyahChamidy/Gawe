@@ -109,18 +109,19 @@ export default function ReviewPage() {
                 </button>
               </div>
             ) : (
-              <div style={{ backgroundColor: '#131929', border: '1px solid #FBBF24', borderRadius: '12px', padding: '24px' }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '12px', color: '#FBBF24' }}>Alasan Revisi</h3>
+              <div style={{ backgroundColor: '#131929', border: '1px solid #f59e0b', borderRadius: '12px', padding: '24px' }}>
+                <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px', color: '#f59e0b' }}>↩ Alasan revisi untuk freelancer</h3>
+                <p style={{ color: '#8892a4', fontSize: '13px', marginBottom: '14px' }}>Jelaskan apa yang perlu diperbaiki agar freelancer bisa segera mengerjakan ulang.</p>
                 <textarea
                   value={revNote}
                   onChange={e => setRevNote(e.target.value)}
-                  placeholder="Jelaskan apa yang perlu diperbaiki freelancer..."
+                  placeholder="cth: Warna background perlu diganti ke biru, font headline terlalu kecil..."
                   style={{ width: '100%', padding: '12px 14px', backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white', fontSize: '13px', outline: 'none', resize: 'vertical', minHeight: '80px', boxSizing: 'border-box', marginBottom: '12px' }}
                 />
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button onClick={handleRevisi} disabled={action !== 'idle' || !revNote.trim()}
-                    style={{ padding: '10px 20px', backgroundColor: revNote.trim() && action === 'idle' ? '#FBBF24' : '#1e2d4a', color: revNote.trim() ? '#0A0E1A' : 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: revNote.trim() && action === 'idle' ? 'pointer' : 'not-allowed' }}>
-                    {action === 'revising' ? 'Mengirim...' : 'Kirim Permintaan Revisi'}
+                    style={{ padding: '10px 20px', backgroundColor: revNote.trim() && action === 'idle' ? '#f59e0b' : '#1e2d4a', color: revNote.trim() ? '#0A0E1A' : '#8892a4', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: revNote.trim() && action === 'idle' ? 'pointer' : 'not-allowed' }}>
+                    {action === 'revising' ? 'Mengirim...' : 'Kirim Revisi'}
                   </button>
                   <button onClick={() => setShowRevForm(false)} style={{ padding: '10px 20px', backgroundColor: 'transparent', color: '#8892a4', border: '1px solid #1e2d4a', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}>
                     Batal

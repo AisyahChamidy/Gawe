@@ -208,9 +208,13 @@ export default function WorkspacePage() {
           <div style={{ backgroundColor: '#131929', border: '1px solid #FBBF24', borderRadius: '12px', padding: '24px' }}>
             <div style={{ fontSize: '14px', color: '#FBBF24', fontWeight: '700', marginBottom: '8px' }}>↩ Revisi Diminta</div>
             {project.revision_note && (
-              <div style={{ backgroundColor: '#0A0E1A', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '8px', padding: '12px 14px', marginBottom: '16px', fontSize: '13px', color: '#c4cdd6', lineHeight: '1.7', whiteSpace: 'pre-wrap' }}>
-                <span style={{ fontSize: '11px', color: '#FBBF24', display: 'block', marginBottom: '6px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Alasan dari klien:</span>
-                {project.revision_note}
+              <div style={{ backgroundColor: '#1a1a2e', border: '1px solid #f59e0b', borderRadius: '8px', padding: '12px 16px', marginBottom: '16px' }}>
+                <div style={{ color: '#f59e0b', fontSize: '12px', marginBottom: '4px', fontWeight: '600' }}>
+                  Catatan revisi dari klien:
+                </div>
+                <div style={{ color: 'white', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                  {project.revision_note}
+                </div>
               </div>
             )}
             <p style={{ color: '#8892a4', fontSize: '13px', marginBottom: '16px' }}>Perbaiki dan submit ulang hasilmu.</p>
