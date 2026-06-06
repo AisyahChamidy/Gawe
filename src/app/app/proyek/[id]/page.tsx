@@ -8,8 +8,8 @@ type Message = { id: string; content: string; sender_id: string; created_at: str
 type Project = {
   id: string; title: string; category: string; budget_min: number; budget_max: number
   status: string; client_id: string; selected_freelancer_id: string | null
-  submission_note: string | null; estimated_days: number
-  description: string; skills_required: string[]
+  submission_note: string | null; revision_note: string | null
+  estimated_days: number; description: string; skills_required: string[]
 }
 
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
@@ -22,7 +22,12 @@ const STATUS_STEPS = [
   { key: 'submitted',   label: 'Dikirim' },
   { key: 'completed',   label: 'Selesai' },
 ]
-const stepIndex = (s: string) => STATUS_STEPS.findIndex(x => x.key === s)
+const STEP_MAP: Record<string, number> = {
+  open: 0, in_review: 1, funded: 2,
+  in_progress: 3, submitted: 4, revision: 3,
+  completed: 5, cancelled: 0,
+}
+const stepIndex = (s: string) => STEP_MAP[s] ?? 0
 
 export default function WorkspacePage() {
   const params  = useParams()
@@ -202,7 +207,13 @@ export default function WorkspacePage() {
         {project.status === 'revision' && (
           <div style={{ backgroundColor: '#131929', border: '1px solid #FBBF24', borderRadius: '12px', padding: '24px' }}>
             <div style={{ fontSize: '14px', color: '#FBBF24', fontWeight: '700', marginBottom: '8px' }}>↩ Revisi Diminta</div>
-            <p style={{ color: '#8892a4', fontSize: '13px', marginBottom: '16px' }}>Klien meminta revisi. Perbaiki dan submit ulang hasilmu.</p>
+            {project.revision_note && (
+              <div style={{ backgroundColor: '#0A0E1A', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '8px', padding: '12px 14px', marginBottom: '16px', fontSize: '13px', color: '#c4cdd6', lineHeight: '1.7', whiteSpace: 'pre-wrap' }}>
+                <span style={{ fontSize: '11px', color: '#FBBF24', display: 'block', marginBottom: '6px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Alasan dari klien:</span>
+                {project.revision_note}
+              </div>
+            )}
+            <p style={{ color: '#8892a4', fontSize: '13px', marginBottom: '16px' }}>Perbaiki dan submit ulang hasilmu.</p>
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}

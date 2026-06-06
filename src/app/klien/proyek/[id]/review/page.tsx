@@ -44,8 +44,11 @@ export default function ReviewPage() {
   async function handleRevisi() {
     if (!revNote.trim()) return
     setAction('revising')
-    await supabase.from('projects').update({ status: 'revision' }).eq('id', projectId)
-    setProject((p: any) => ({ ...p, status: 'revision' }))
+    await supabase.from('projects').update({
+      status: 'revision',
+      revision_note: revNote.trim(),
+    }).eq('id', projectId)
+    setProject((p: any) => ({ ...p, status: 'revision', revision_note: revNote.trim() }))
     setShowRevForm(false)
     setRevNote('')
     setAction('idle')
