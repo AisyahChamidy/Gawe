@@ -90,11 +90,16 @@ export default function LamaranPage() {
                       </span>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: '16px' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: '16px', flexWrap: 'wrap' }}>
                     {item.status === 'accepted' && (
-                      <a href={'/app/proyek/' + item.projects?.id} style={{ padding: '5px 12px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', textDecoration: 'none' }}>
-                        💬 Chat
-                      </a>
+                      <>
+                        <a href={'/app/proyek/' + item.projects?.id} style={{ padding: '5px 12px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                          🏗 Buka Workspace →
+                        </a>
+                        <a href={'/app/proyek/' + item.projects?.id} style={{ padding: '5px 12px', backgroundColor: 'transparent', border: '1px solid rgba(79,110,247,0.4)', color: '#4F6EF7', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                          💬 Chat
+                        </a>
+                      </>
                     )}
                     <span style={{ backgroundColor: s.bg, color: s.color, fontSize: '12px', padding: '5px 12px', borderRadius: '20px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                       {s.label}
