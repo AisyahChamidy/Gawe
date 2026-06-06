@@ -20,7 +20,7 @@ export default function DasborPage() {
       const [{ data: prof }, { data: apps }] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
         supabase.from('applications')
-          .select('id, status, created_at, projects(id, title, category, budget_min, budget_max)')
+          .select('id, status, created_at, projects(id, title, category, budget_min, budget_max, status)')
           .eq('freelancer_id', user.id).order('created_at', { ascending: false })
       ])
       const allApps = apps || []
@@ -37,9 +37,20 @@ export default function DasborPage() {
 
   if (loading) return <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Memuat...</div>
 
-  const statusColor: Record<string, string> = { pending: '#FBBF24', accepted: '#10B981', rejected: '#EF4444' }
-  const statusLabel: Record<string, string> = { pending: 'Menunggu', accepted: 'Diterima', rejected: 'Ditolak' }
   const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
+
+  function getBadge(appStatus: string, projStatus?: string): { label: string; color: string; border: string } {
+    if (appStatus === 'rejected') return { label: 'Ditolak', color: '#EF4444', border: '#EF4444' }
+    if (appStatus === 'pending')  return { label: 'Menunggu', color: '#FBBF24', border: '#FBBF24' }
+    if (appStatus === 'accepted') {
+      if (projStatus === 'in_progress') return { label: 'Sedang Dikerjakan', color: '#4F6EF7', border: '#4F6EF7' }
+      if (projStatus === 'submitted')   return { label: 'Menunggu Review',   color: '#8B5CF6', border: '#8B5CF6' }
+      if (projStatus === 'completed')   return { label: 'Selesai ✓',        color: '#10B981', border: '#10B981' }
+      if (projStatus === 'revision')    return { label: 'Perlu Revisi',      color: '#f59e0b', border: '#f59e0b' }
+      return { label: 'Diterima', color: '#10B981', border: '#10B981' }
+    }
+    return { label: appStatus, color: '#8892a4', border: '#1e2d4a' }
+  }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
@@ -84,9 +95,14 @@ export default function DasborPage() {
                 <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{item.projects?.title || 'Proyek'}</div>
                 <div style={{ color: '#8892a4', fontSize: '12px' }}>{item.projects?.category} · {fmt(item.projects?.budget_min || 0)} – {fmt(item.projects?.budget_max || 0)}</div>
               </div>
-              <span style={{ color: statusColor[item.status] || 'white', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold', border: '1px solid', borderColor: statusColor[item.status] || '#1e2d4a', backgroundColor: '#0A0E1A' }}>
-                {statusLabel[item.status] || item.status}
-              </span>
+              {(() => {
+                const b = getBadge(item.status, item.projects?.status)
+                return (
+                  <span style={{ color: b.color, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold', border: `1px solid ${b.border}`, backgroundColor: '#0A0E1A', whiteSpace: 'nowrap' }}>
+                    {b.label}
+                  </span>
+                )
+              })()}
             </div>
           ))}
         </div>

@@ -17,6 +17,8 @@ export default function ReviewPage() {
   const [action,   setAction]   = useState<'idle' | 'approving' | 'revising'>('idle')
   const [revNote,  setRevNote]  = useState('')
   const [showRevForm, setShowRevForm] = useState(false)
+  const [revisionSent, setRevisionSent] = useState(false)
+  const [sentNote, setSentNote] = useState('')
 
   useEffect(() => {
     async function load() {
@@ -48,7 +50,10 @@ export default function ReviewPage() {
       status: 'revision',
       revision_note: revNote.trim(),
     }).eq('id', projectId)
-    setProject((p: any) => ({ ...p, status: 'revision', revision_note: revNote.trim() }))
+    const note = revNote.trim()
+    setProject((p: any) => ({ ...p, status: 'revision', revision_note: note }))
+    setSentNote(note)
+    setRevisionSent(true)
     setShowRevForm(false)
     setRevNote('')
     setAction('idle')
@@ -96,8 +101,24 @@ export default function ReviewPage() {
               )}
             </div>
 
+            {/* Konfirmasi revisi terkirim */}
+            {revisionSent && (
+              <div style={{ backgroundColor: 'rgba(245,158,11,0.1)', border: '1px solid #f59e0b', borderRadius: '12px', padding: '20px 24px', marginBottom: '20px' }}>
+                <div style={{ color: '#f59e0b', fontWeight: '700', fontSize: '15px', marginBottom: '8px' }}>
+                  ✓ Permintaan revisi berhasil dikirim ke freelancer
+                </div>
+                <div style={{ backgroundColor: '#0A0E1A', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '8px', padding: '12px 14px', fontSize: '13px', color: '#c4cdd6', lineHeight: '1.6', whiteSpace: 'pre-wrap', marginBottom: '14px' }}>
+                  <span style={{ fontSize: '11px', color: '#f59e0b', display: 'block', marginBottom: '4px', fontWeight: '600' }}>Catatan yang dikirim:</span>
+                  {sentNote}
+                </div>
+                <a href="/klien/proyek" style={{ display: 'inline-block', padding: '8px 18px', backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '700' }}>
+                  ← Kembali ke Proyekku
+                </a>
+              </div>
+            )}
+
             {/* Actions */}
-            {!showRevForm ? (
+            {!revisionSent && !showRevForm ? (
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <button onClick={handleSetujui} disabled={action !== 'idle'}
                   style={{ flex: 1, minWidth: '160px', padding: '14px', backgroundColor: action === 'approving' ? '#0d7a57' : '#10B981', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: action !== 'idle' ? 'not-allowed' : 'pointer', opacity: action !== 'idle' ? 0.7 : 1 }}>
@@ -108,7 +129,7 @@ export default function ReviewPage() {
                   ↩ Minta Revisi
                 </button>
               </div>
-            ) : (
+            ) : !revisionSent && (
               <div style={{ backgroundColor: '#131929', border: '1px solid #f59e0b', borderRadius: '12px', padding: '24px' }}>
                 <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '6px', color: '#f59e0b' }}>↩ Alasan revisi untuk freelancer</h3>
                 <p style={{ color: '#8892a4', fontSize: '13px', marginBottom: '14px' }}>Jelaskan apa yang perlu diperbaiki agar freelancer bisa segera mengerjakan ulang.</p>

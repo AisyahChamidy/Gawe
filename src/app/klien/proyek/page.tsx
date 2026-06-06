@@ -127,6 +127,12 @@ export default function KlienProyekPage() {
                             🔍 Review Hasil
                           </a>
                         )}
+                        {project.status === 'revision' && (
+                          <a href={`/klien/proyek/${project.id}/review`}
+                            style={{ padding: '6px 14px', backgroundColor: '#f59e0b', color: '#0A0E1A', borderRadius: '8px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                            ↩ Lihat Revisi →
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>
