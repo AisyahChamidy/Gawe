@@ -18,11 +18,16 @@ export default function DasborKlienPage() {
       if (!user) { router.push('/auth/masuk'); return }
       setUser(user)
 
-      const { data: projects } = await supabase
+      console.log('[KlienDasbor] user.id:', user.id)
+
+      const { data: projects, error: projError } = await supabase
         .from('projects')
         .select('id, title, category, status, budget_max, created_at, applications(id, status)')
         .eq('client_id', user.id)
         .order('created_at', { ascending: false })
+
+      console.log('[KlienDasbor] projects:', projects)
+      console.log('[KlienDasbor] error:', projError)
 
       const all = projects || []
       const totalPelamar = all.reduce((sum: number, p: any) => sum + (p.applications?.length || 0), 0)

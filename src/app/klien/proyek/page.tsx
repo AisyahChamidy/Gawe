@@ -35,12 +35,18 @@ export default function KlienProyekPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/masuk'); return }
 
-    const { data: projectsData } = await supabase
+    console.log('[KlienProyek] user.id:', user.id)
+
+    const { data: projectsData, error: projError } = await supabase
       .from('projects')
       .select('id, title, category, budget_min, budget_max, status, applications(id, status, created_at, freelancer_id)')
       .eq('client_id', user.id)
       .order('created_at', { ascending: false })
 
+    console.log('[KlienProyek] projects:', projectsData)
+    console.log('[KlienProyek] error:', projError)
+
+    if (projError) { console.error('[KlienProyek] Query error:', projError.message); setLoading(false); return }
     if (!projectsData) { setLoading(false); return }
 
     const ids = [...new Set(projectsData.flatMap((p: any) => (p.applications || []).map((a: any) => a.freelancer_id)))]
