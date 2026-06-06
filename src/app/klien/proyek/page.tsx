@@ -35,18 +35,13 @@ export default function KlienProyekPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/masuk'); return }
 
-    console.log('[KlienProyek] user.id:', user.id)
-
     const { data: projectsData, error: projError } = await supabase
       .from('projects')
       .select('id, title, category, budget_min, budget_max, status, applications(id, status, created_at, freelancer_id)')
       .eq('client_id', user.id)
       .order('created_at', { ascending: false })
 
-    console.log('[KlienProyek] projects:', projectsData)
-    console.log('[KlienProyek] error:', projError)
-
-    if (projError) { console.error('[KlienProyek] Query error:', projError.message); setLoading(false); return }
+    if (projError) { setLoading(false); return }
     if (!projectsData) { setLoading(false); return }
 
     const ids = [...new Set(projectsData.flatMap((p: any) => (p.applications || []).map((a: any) => a.freelancer_id)))]
@@ -65,16 +60,12 @@ export default function KlienProyekPage() {
 
   async function handleTerima(appId: string, projectId: string, freelancerId: string) {
     setActionLoading(appId)
-    console.log('[handleTerima] appId:', appId, '| projectId:', projectId, '| freelancerId:', freelancerId)
 
-    const { error: appErr } = await supabase.from('applications').update({ status: 'accepted' }).eq('id', appId)
-    console.log('[handleTerima] application update error:', appErr)
-
-    const { error: projErr } = await supabase.from('projects').update({
+    await supabase.from('applications').update({ status: 'accepted' }).eq('id', appId)
+    await supabase.from('projects').update({
       status: 'in_review',
       selected_freelancer_id: freelancerId,
     }).eq('id', projectId)
-    console.log('[handleTerima] project update error:', projErr)
 
     await fetchProjects()
     setActionLoading(null)
