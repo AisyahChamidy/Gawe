@@ -17,6 +17,7 @@ export default function ProfilPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [myReviews, setMyReviews] = useState<any[]>([])
   const [avgRating, setAvgRating] = useState(0)
+  const [ktpVerified, setKtpVerified] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -34,6 +35,7 @@ export default function ProfilPage() {
         setForm({ full_name: p.full_name || '', headline: p.headline || '', bio: p.bio || '', city: p.city || '', skills: (p.skills || []).join(', ') })
         setTrustScore(p.trust_score || 10)
         setAvatarUrl(p.avatar_url || null)
+        setKtpVerified(p.ktp_status === 'verified')
       }
       if (revData && revData.length > 0) {
         setMyReviews(revData)
@@ -67,6 +69,7 @@ export default function ProfilPage() {
     if (form.bio && form.bio.length > 50) score += 5
     if (form.city) score += 3
     if (skills.length > 0) score += 7
+    if (ktpVerified) score += 10
     await supabase.from('profiles').upsert({ id: user.id, full_name: form.full_name, headline: form.headline, bio: form.bio, city: form.city, skills, trust_score: score })
     setTrustScore(score)
     setSaved(true)
@@ -107,6 +110,12 @@ export default function ProfilPage() {
             <div>
               <h1 style={{ fontSize: '24px', marginBottom: '4px' }}>Edit Profil</h1>
               <p style={{ color: '#8892a4', fontSize: '13px' }}>Profil lengkap = Trust Score tinggi</p>
+              {ktpVerified && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '6px', backgroundColor: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '20px', padding: '3px 10px' }}>
+                  <span style={{ fontSize: '11px' }}>🛡️</span>
+                  <span style={{ fontSize: '11px', color: '#10B981', fontWeight: '600' }}>Identitas Terverifikasi</span>
+                </div>
+              )}
             </div>
           </div>
           <div style={{ backgroundColor: '#131929', border: '1px solid rgba(34,211,238,0.4)', borderRadius: '12px', padding: '16px 20px', minWidth: '180px' }}>
@@ -125,7 +134,13 @@ export default function ProfilPage() {
               {form.city && <div style={{ color: '#10B981' }}>+3 kota</div>}
               {form.skills && <div style={{ color: '#10B981' }}>+7 skills</div>}
             </div>
-            <a href="/app/profil/skill-test" style={{ display: 'block', marginTop: '10px', fontSize: '11px', color: '#4F6EF7', textDecoration: 'none', fontWeight: '600' }}>
+            {ktpVerified
+              ? <div style={{ color: '#10B981', fontSize: '11px', marginTop: '4px' }}>✓ Identitas Terverifikasi +10</div>
+              : <a href="/app/profil/verifikasi" style={{ display: 'block', marginTop: '4px', fontSize: '11px', color: '#8892a4', textDecoration: 'none' }}>
+                  ○ Verifikasi KTP <span style={{ color: '#4F6EF7' }}>+10 poin →</span>
+                </a>
+            }
+            <a href="/app/profil/skill-test" style={{ display: 'block', marginTop: '6px', fontSize: '11px', color: '#4F6EF7', textDecoration: 'none', fontWeight: '600' }}>
               + Ikuti Skill Test →
             </a>
           </div>

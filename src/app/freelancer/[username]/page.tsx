@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 type Profile = {
   id: string; full_name: string; headline: string; bio: string
   city: string; trust_score: number; skills: string[]; avatar_url: string
+  ktp_status: string
 }
 
 const navLink: React.CSSProperties = { color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }
@@ -111,6 +112,12 @@ export default function FreelancerProfilePage() {
               )}
               {profile.city && (
                 <p style={{ color: '#8892a4', fontSize: '13px' }}>📍 {profile.city}</p>
+              )}
+              {profile.ktp_status === 'verified' && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '6px', backgroundColor: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '20px', padding: '3px 10px' }}>
+                  <span style={{ fontSize: '11px' }}>🛡️</span>
+                  <span style={{ fontSize: '11px', color: '#10B981', fontWeight: '600' }}>Identitas Terverifikasi</span>
+                </div>
               )}
               {reviews.length > 0 && (
                 <p style={{ fontSize: '13px', color: '#FBBF24', marginTop: '6px', fontWeight: '600' }}>
