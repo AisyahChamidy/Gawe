@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { createBrowserClient } from '@supabase/ssr'
 import { motion, useInView, useMotionValue, useSpring } from 'framer-motion'
 import {
   ShieldCheck, Zap, Wallet, ArrowRight, CheckCircle2,
@@ -131,6 +132,25 @@ const fadeUp = {
 }
 
 export default function LandingPage() {
+  const [liveStats, setLiveStats] = useState({ freelancers: 500, projects: 100 })
+
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    async function fetchStats() {
+      const [{ count: fc }, { count: pc }] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).in('role', ['freelancer', 'both']),
+        supabase.from('projects').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+      ])
+      if (fc || pc) {
+        setLiveStats({ freelancers: fc || 500, projects: pc || 100 })
+      }
+    }
+    fetchStats()
+  }, [])
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -347,8 +367,8 @@ export default function LandingPage() {
               }}
             >
               {[
-                { value: 500, suffix: '+', label: 'Freelancer tervalidasi' },
-                { value: 100, suffix: '+', label: 'Proyek tersedia' },
+                { value: liveStats.freelancers, suffix: '+', label: 'Freelancer tervalidasi' },
+                { value: liveStats.projects, suffix: '+', label: 'Proyek tersedia' },
                 { value: 10, suffix: '%', label: 'Komisi platform saja' },
               ].map((stat, i) => (
                 <div key={i} style={{

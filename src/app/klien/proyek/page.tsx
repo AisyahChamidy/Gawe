@@ -6,6 +6,7 @@ import NavbarKlien from '@/components/NavbarKlien'
 
 type Application = { id: string; status: string; created_at: string; freelancer_id: string; freelancer_name: string }
 type Project = { id: string; title: string; category: string; budget_min: number; budget_max: number; status: string; applications: Application[] }
+type ReviewedSet = Set<string>
 
 function formatRupiah(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
@@ -23,8 +24,9 @@ const projectStatusBadge: Record<string, { label: string; color: string; bg: str
 }
 
 export default function KlienProyekPage() {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [loading,  setLoading]  = useState(true)
+  const [projects,    setProjects]    = useState<Project[]>([])
+  const [reviewedIds, setReviewedIds] = useState<ReviewedSet>(new Set())
+  const [loading,     setLoading]     = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const router  = useRouter()
   const supabase = createClient()
@@ -55,6 +57,14 @@ export default function KlienProyekPage() {
       ...p,
       applications: (p.applications || []).map((a: any) => ({ ...a, freelancer_name: names[a.freelancer_id] || 'Pengguna' })),
     })))
+
+    // Fetch yang sudah dirating
+    const completedIds = projectsData.filter((p: any) => p.status === 'completed').map((p: any) => p.id)
+    if (completedIds.length > 0) {
+      const { data: revData } = await supabase
+        .from('reviews').select('project_id').eq('reviewer_id', user.id).in('project_id', completedIds)
+      setReviewedIds(new Set((revData || []).map((r: any) => r.project_id)))
+    }
     setLoading(false)
   }
 
@@ -132,6 +142,18 @@ export default function KlienProyekPage() {
                             style={{ padding: '6px 14px', backgroundColor: '#f59e0b', color: '#0A0E1A', borderRadius: '8px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
                             ↩ Lihat Revisi →
                           </a>
+                        )}
+                        {project.status === 'completed' && (
+                          reviewedIds.has(project.id) ? (
+                            <span style={{ fontSize: '12px', color: '#10B981', padding: '4px 10px', borderRadius: '20px', backgroundColor: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', fontWeight: '600' }}>
+                              ✓ Sudah Dirating
+                            </span>
+                          ) : (
+                            <a href={`/klien/proyek/${project.id}/rating`}
+                              style={{ padding: '6px 14px', backgroundColor: '#FBBF24', color: '#0A0E1A', borderRadius: '8px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
+                              ⭐ Beri Rating
+                            </a>
+                          )
                         )}
                       </div>
                     </div>

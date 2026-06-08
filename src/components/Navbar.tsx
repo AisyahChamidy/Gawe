@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
+import { Bell } from 'lucide-react'
 
 export default function Navbar() {
   const [firstName, setFirstName] = useState('')
@@ -9,6 +10,7 @@ export default function Navbar() {
   const [userRole, setUserRole] = useState<string>('freelancer')
   const [showKonfirmasi, setShowKonfirmasi] = useState(false)
   const [aktivasi, setAktivasi] = useState(false)
+  const [showBell, setShowBell] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
@@ -165,6 +167,17 @@ export default function Navbar() {
             {firstName}
           </span>
         )}
+        {/* Bell */}
+        <div style={{ position: 'relative' }}>
+          <button onClick={() => setShowBell(b => !b)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.5)' }}>
+            <Bell size={17} strokeWidth={1.8} />
+          </button>
+          {showBell && (
+            <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '10px', padding: '16px', width: '240px', zIndex: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
+              <p style={{ fontSize: '13px', color: '#8892a4', textAlign: 'center' }}>🔔 Sistem notifikasi akan segera hadir</p>
+            </div>
+          )}
+        </div>
         <button onClick={handleLogout} style={{
           padding: '6px 14px', backgroundColor: 'transparent',
           border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px',

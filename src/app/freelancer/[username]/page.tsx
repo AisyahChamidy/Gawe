@@ -15,21 +15,36 @@ export default function FreelancerProfilePage() {
   const freelancerId = params.username as string
   const supabase = createClient()
 
-  const [profile, setProfile]         = useState<Profile | null>(null)
-  const [acceptedCount, setAccepted]  = useState(0)
-  const [loading, setLoading]         = useState(true)
-  const [notFound, setNotFound]       = useState(false)
+  const [profile,      setProfile]      = useState<Profile | null>(null)
+  const [acceptedCount, setAccepted]   = useState(0)
+  const [reviews,      setReviews]     = useState<any[]>([])
+  const [avgRating,    setAvgRating]   = useState(0)
+  const [loading,      setLoading]     = useState(true)
+  const [notFound,     setNotFound]    = useState(false)
 
   useEffect(() => {
     async function load() {
-      const [{ data: prof }, { count }] = await Promise.all([
+      const [{ data: prof }, { count }, { data: revData }] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', freelancerId).single(),
         supabase.from('applications').select('id', { count: 'exact', head: true })
           .eq('freelancer_id', freelancerId).eq('status', 'accepted'),
+        supabase.from('reviews').select('*').eq('reviewee_id', freelancerId)
+          .order('created_at', { ascending: false }).limit(5),
       ])
       if (!prof) { setNotFound(true); setLoading(false); return }
       setProfile(prof)
       setAccepted(count || 0)
+
+      if (revData && revData.length > 0) {
+        const reviewerIds = [...new Set(revData.map((r: any) => r.reviewer_id))]
+        const { data: reviewerProfiles } = await supabase
+          .from('profiles').select('id, full_name').in('id', reviewerIds)
+        const nameMap: Record<string, string> = {}
+        ;(reviewerProfiles || []).forEach((p: any) => { nameMap[p.id] = p.full_name || 'Pengguna' })
+        const enriched = revData.map((r: any) => ({ ...r, reviewer_name: nameMap[r.reviewer_id] || 'Pengguna' }))
+        setReviews(enriched)
+        setAvgRating(Math.round((enriched.reduce((s: number, r: any) => s + r.rating, 0) / enriched.length) * 10) / 10)
+      }
       setLoading(false)
     }
     load()
@@ -97,6 +112,11 @@ export default function FreelancerProfilePage() {
               {profile.city && (
                 <p style={{ color: '#8892a4', fontSize: '13px' }}>📍 {profile.city}</p>
               )}
+              {reviews.length > 0 && (
+                <p style={{ fontSize: '13px', color: '#FBBF24', marginTop: '6px', fontWeight: '600' }}>
+                  {'⭐'.repeat(Math.round(avgRating))} {avgRating} <span style={{ color: '#8892a4', fontWeight: '400' }}>({reviews.length} ulasan)</span>
+                </p>
+              )}
             </div>
 
             {/* Trust Score */}
@@ -137,6 +157,29 @@ export default function FreelancerProfilePage() {
                     <span key={skill} style={{ backgroundColor: 'rgba(79,110,247,0.08)', border: '1px solid rgba(79,110,247,0.2)', color: '#4F6EF7', fontSize: '13px', padding: '6px 14px', borderRadius: '20px', fontWeight: '500' }}>
                       {skill}
                     </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Reviews */}
+            {reviews.length > 0 && (
+              <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '24px' }}>
+                <h2 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px', color: '#8892a4', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Ulasan ({reviews.length})
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {reviews.map((r: any) => (
+                    <div key={r.id} style={{ backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '8px', padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ fontWeight: '600', fontSize: '13px' }}>{r.reviewer_name}</span>
+                        <span style={{ color: '#FBBF24', fontSize: '13px' }}>{'⭐'.repeat(r.rating)}</span>
+                      </div>
+                      {r.comment && <p style={{ color: '#c4cdd6', fontSize: '13px', lineHeight: '1.6' }}>{r.comment}</p>}
+                      <p style={{ color: '#8892a4', fontSize: '11px', marginTop: '6px' }}>
+                        {new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
                   ))}
                 </div>
               </div>
