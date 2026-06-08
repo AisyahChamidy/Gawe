@@ -54,7 +54,7 @@ export default function VerifikasiPage() {
     console.log('[KYC] file name:', file.name, '| size:', file.size, '| type:', file.type)
 
     const { error: uploadErr } = await supabase.storage
-      .from('ktps')
+      .from('avatars')
       .upload(path, file, { upsert: true, contentType: file.type })
 
     if (uploadErr) {
@@ -68,7 +68,7 @@ export default function VerifikasiPage() {
     }
 
     console.log('[KYC] upload sukses, mengambil URL...')
-    const { data: urlData } = supabase.storage.from('ktps').getPublicUrl(path)
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
     console.log('[KYC] publicUrl:', urlData.publicUrl)
 
     const { data: prof } = await supabase.from('profiles').select('trust_score').eq('id', user.id).single()
