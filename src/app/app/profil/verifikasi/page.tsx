@@ -49,13 +49,31 @@ export default function VerifikasiPage() {
     const ext  = file.name.split('.').pop() || 'jpg'
     const path = `${user.id}/ktp.${ext}`
 
-    const { error: uploadErr } = await supabase.storage.from('ktps').upload(path, file, { upsert: true })
-    if (uploadErr) { setError('Gagal upload foto. Coba lagi.'); setUploading(false); return }
+    console.log('[KYC] user.id:', user.id)
+    console.log('[KYC] upload path:', path)
+    console.log('[KYC] file name:', file.name, '| size:', file.size, '| type:', file.type)
 
+    const { error: uploadErr } = await supabase.storage
+      .from('ktps')
+      .upload(path, file, { upsert: true, contentType: file.type })
+
+    if (uploadErr) {
+      console.error('[KYC] Upload error detail:', JSON.stringify(uploadErr, null, 2))
+      console.error('[KYC] Error message:', uploadErr?.message)
+      console.error('[KYC] Error statusCode:', (uploadErr as any)?.statusCode)
+      console.error('[KYC] Error error:', (uploadErr as any)?.error)
+      setError(`Gagal upload: ${uploadErr.message}`)
+      setUploading(false)
+      return
+    }
+
+    console.log('[KYC] upload sukses, mengambil URL...')
     const { data: urlData } = supabase.storage.from('ktps').getPublicUrl(path)
+    console.log('[KYC] publicUrl:', urlData.publicUrl)
 
     const { data: prof } = await supabase.from('profiles').select('trust_score').eq('id', user.id).single()
     const currentScore = prof?.trust_score || 10
+    console.log('[KYC] current trust_score:', currentScore)
 
     const { error: updateErr } = await supabase.from('profiles').update({
       ktp_status:  'verified',
@@ -63,8 +81,14 @@ export default function VerifikasiPage() {
       trust_score: currentScore + 10,
     }).eq('id', user.id)
 
-    if (updateErr) { setError('Gagal menyimpan verifikasi. Coba lagi.'); setUploading(false); return }
+    if (updateErr) {
+      console.error('[KYC] Profile update error:', JSON.stringify(updateErr, null, 2))
+      setError(`Gagal menyimpan verifikasi: ${updateErr.message}`)
+      setUploading(false)
+      return
+    }
 
+    console.log('[KYC] verifikasi berhasil!')
     setDone(true)
     setUploading(false)
   }
