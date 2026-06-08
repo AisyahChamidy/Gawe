@@ -15,6 +15,8 @@ export default function ProfilPage() {
   const [trustScore, setTrustScore] = useState(10)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [myReviews, setMyReviews] = useState<any[]>([])
+  const [avgRating, setAvgRating] = useState(0)
   const router = useRouter()
   const supabase = createClient()
 
@@ -23,11 +25,19 @@ export default function ProfilPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/masuk'); return }
       setUser(user)
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      const [{ data: p }, { data: revData }] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).single(),
+        supabase.from('reviews').select('rating, comment, created_at')
+          .eq('reviewee_id', user.id).order('created_at', { ascending: false }),
+      ])
       if (p) {
         setForm({ full_name: p.full_name || '', headline: p.headline || '', bio: p.bio || '', city: p.city || '', skills: (p.skills || []).join(', ') })
         setTrustScore(p.trust_score || 10)
         setAvatarUrl(p.avatar_url || null)
+      }
+      if (revData && revData.length > 0) {
+        setMyReviews(revData)
+        setAvgRating(Math.round((revData.reduce((s: number, r: any) => s + r.rating, 0) / revData.length) * 10) / 10)
       }
       setLoading(false)
     }
@@ -157,6 +167,38 @@ export default function ProfilPage() {
             style={{ padding: '14px', backgroundColor: saving ? '#2a3a6a' : '#4F6EF7', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 'bold', cursor: saving ? 'not-allowed' : 'pointer' }}>
             {saving ? 'Menyimpan...' : 'Simpan Profil'}
           </button>
+        </div>
+
+        {/* Ulasan yang diterima */}
+        <div style={{ marginTop: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700' }}>Ulasan dari Klien</h2>
+            {myReviews.length > 0 && (
+              <span style={{ color: '#FBBF24', fontSize: '14px', fontWeight: '600' }}>
+                ⭐ {avgRating} <span style={{ color: '#8892a4', fontWeight: '400' }}>({myReviews.length} ulasan)</span>
+              </span>
+            )}
+          </div>
+          {myReviews.length === 0 ? (
+            <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '32px', textAlign: 'center', color: '#8892a4' }}>
+              <div style={{ fontSize: '32px', marginBottom: '10px' }}>⭐</div>
+              <p style={{ fontSize: '14px' }}>Belum ada ulasan. Selesaikan proyek dan minta klien beri rating!</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {myReviews.map((r: any, i: number) => (
+                <div key={i} style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '10px', padding: '16px 20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: r.comment ? '8px' : 0 }}>
+                    <span style={{ color: '#FBBF24', fontSize: '15px' }}>{'⭐'.repeat(r.rating)}<span style={{ color: '#8892a4', fontSize: '12px', marginLeft: '6px' }}>{r.rating}/5</span></span>
+                    <span style={{ color: '#8892a4', fontSize: '12px' }}>
+                      {new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </div>
+                  {r.comment && <p style={{ color: '#c4cdd6', fontSize: '13px', lineHeight: '1.6' }}>{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -168,7 +168,11 @@ export default function KlienProyekPage() {
                         {project.applications.map(app => (
                           <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: '#0A0E1A', borderRadius: '8px', border: '1px solid #1e2d4a', flexWrap: 'wrap', gap: '8px' }}>
                             <div>
-                              <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{app.freelancer_name}</div>
+                              <a href={`/freelancer/${app.freelancer_id}`} style={{ fontWeight: 'bold', fontSize: '14px', color: 'white', textDecoration: 'none' }}
+                                onMouseEnter={e => (e.currentTarget.style.color = '#4F6EF7')}
+                                onMouseLeave={e => (e.currentTarget.style.color = 'white')}>
+                                {app.freelancer_name} ↗
+                              </a>
                               <div style={{ color: '#8892a4', fontSize: '12px', marginTop: '2px' }}>
                                 {new Date(app.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                               </div>
