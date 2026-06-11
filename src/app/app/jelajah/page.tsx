@@ -18,6 +18,13 @@ export default function JelajahPage() {
   const [kategori, setKategori] = useState('Semua')
   const [budgetMax, setBudgetMax] = useState(5000000)
   const [sortBy, setSortBy] = useState('terbaru')
+
+  const [showModal, setShowModal] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [coverLetter, setCoverLetter] = useState('')
+  const [coverLetterError, setCoverLetterError] = useState('')
+  const [proposedBudget, setProposedBudget] = useState('')
+
   const supabase = createClient()
   const router = useRouter()
 
@@ -48,13 +55,65 @@ export default function JelajahPage() {
     setFiltered(r)
   }, [search, kategori, budgetMax, sortBy, projects])
 
-  async function handleLamar(projectId: string) {
+  function openModal(project: Project) {
+    setSelectedProject(project)
+    setCoverLetter('')
+    setCoverLetterError('')
+    setProposedBudget('')
+    setShowModal(true)
+  }
+
+  function closeModal() {
+    setShowModal(false)
+    setSelectedProject(null)
+    setCoverLetter('')
+    setCoverLetterError('')
+    setProposedBudget('')
+  }
+
+  async function handleSubmit() {
+    if (coverLetter.trim().length < 20) {
+      setCoverLetterError('Minimal 20 karakter.')
+      return
+    }
+    if (!selectedProject) return
+
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/masuk'); return }
-    setApplyingId(projectId)
-    const { error } = await supabase.from('applications').insert({ project_id: projectId, freelancer_id: user.id, cover_letter: '', status: 'pending' })
-    if (!error) setAppliedIds(prev => [...prev, projectId])
+
+    setApplyingId(selectedProject.id)
+
+    const payload: Record<string, unknown> = {
+      project_id: selectedProject.id,
+      freelancer_id: user.id,
+      cover_letter: coverLetter.trim(),
+      status: 'pending',
+    }
+    if (proposedBudget) payload.proposed_budget = parseInt(proposedBudget)
+
+    let { error } = await supabase.from('applications').insert(payload)
+
+    // proposed_budget column may not exist — retry without it
+    if (error && proposedBudget) {
+      const { error: err2 } = await supabase.from('applications').insert({
+        project_id: selectedProject.id,
+        freelancer_id: user.id,
+        cover_letter: coverLetter.trim(),
+        status: 'pending',
+      })
+      error = err2
+    }
+
+    if (!error) {
+      setAppliedIds(prev => [...prev, selectedProject.id])
+      closeModal()
+    }
     setApplyingId(null)
+  }
+
+  const inp: React.CSSProperties = {
+    width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: '8px', padding: '12px', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box',
   }
 
   return (
@@ -64,6 +123,8 @@ export default function JelajahPage() {
           .filter-scroll { flex-wrap: nowrap !important; overflow-x: auto !important; padding-bottom: 4px; }
           .filter-scroll::-webkit-scrollbar { display: none; }
         }
+        .modal-textarea::placeholder { color: rgba(255,255,255,0.3); }
+        .modal-input::placeholder { color: rgba(255,255,255,0.3); }
       `}</style>
       <Navbar />
       <div style={{ padding: 'clamp(20px, 5vw, 40px) clamp(16px, 4vw, 32px)', maxWidth: '900px', margin: '0 auto' }}>
@@ -135,7 +196,9 @@ export default function JelajahPage() {
                       <span key={skill} style={{ backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', color: '#8892a4', fontSize: '12px', padding: '4px 10px', borderRadius: '6px' }}>{skill}</span>
                     ))}
                   </div>
-                  <button onClick={() => !sudahDilamar && handleLamar(project.id)} disabled={sudahDilamar || sedangMelamar}
+                  <button
+                    onClick={() => !sudahDilamar && openModal(project)}
+                    disabled={sudahDilamar || sedangMelamar}
                     style={{ backgroundColor: sudahDilamar ? '#1a2340' : '#4F6EF7', color: sudahDilamar ? '#4F6EF7' : 'white', border: sudahDilamar ? '1px solid #4F6EF7' : 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', fontWeight: 'bold', cursor: sudahDilamar ? 'default' : 'pointer' }}>
                     {sedangMelamar ? 'Mengirim...' : sudahDilamar ? '✓ Sudah Dilamar' : 'Lamar Proyek'}
                   </button>
@@ -145,6 +208,74 @@ export default function JelajahPage() {
           </div>
         )}
       </div>
+
+      {/* Modal konfirmasi lamaran */}
+      {showModal && selectedProject && (
+        <div
+          onClick={e => { if (e.target === e.currentTarget) closeModal() }}
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ background: '#0F1629', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '32px', maxWidth: '520px', width: '100%' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>Kirim Lamaran</h2>
+            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '24px' }}>{selectedProject.title}</p>
+
+            {/* Cover letter */}
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>
+                Kenapa kamu cocok untuk proyek ini? <span style={{ color: '#EF4444' }}>*</span>
+              </label>
+              <div style={{ position: 'relative' }}>
+                <textarea
+                  className="modal-textarea"
+                  value={coverLetter}
+                  onChange={e => { setCoverLetter(e.target.value.slice(0, 500)); setCoverLetterError('') }}
+                  placeholder="Ceritakan pengalamanmu yang relevan, skill yang kamu miliki, atau pendekatan yang akan kamu gunakan..."
+                  style={{ ...inp, minHeight: '120px', resize: 'vertical', paddingBottom: '24px' }}
+                />
+                <span style={{ position: 'absolute', bottom: '8px', right: '10px', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                  {coverLetter.length}/500
+                </span>
+              </div>
+              {coverLetterError && (
+                <p style={{ color: '#EF4444', fontSize: '13px', marginTop: '4px' }}>{coverLetterError}</p>
+              )}
+            </div>
+
+            {/* Harga penawaran */}
+            <div style={{ marginBottom: '28px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>
+                Harga Penawaran (Rp)
+              </label>
+              <input
+                className="modal-input"
+                type="number"
+                value={proposedBudget}
+                onChange={e => setProposedBudget(e.target.value)}
+                placeholder="contoh: 500000"
+                min={selectedProject.budget_min}
+                max={selectedProject.budget_max}
+                style={inp}
+              />
+              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '6px' }}>
+                Budget klien: {fmt(selectedProject.budget_min)} – {fmt(selectedProject.budget_max)}
+              </p>
+            </div>
+
+            {/* Aksi */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button onClick={closeModal}
+                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', cursor: 'pointer' }}>
+                Batalkan
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={applyingId === selectedProject.id}
+                style={{ background: '#4F6EF7', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
+                {applyingId === selectedProject.id ? 'Mengirim...' : 'Kirim Lamaran'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
