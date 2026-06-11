@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import { TrendingUp, AlertTriangle, AlertCircle, Sparkles } from 'lucide-react'
 
 type Transaction = {
   id: string
@@ -86,9 +87,29 @@ export default function KeuanganPage() {
   const maxChart = Math.max(...chartData.map(d => d.total), 1)
 
   // Status cashflow
-  const statusCashflow = bulanIni >= 1000000 ? { label: 'Aman', color: '#10B981', bg: '#152d1e' }
-    : bulanIni >= 500000 ? { label: 'Waspada', color: '#FBBF24', bg: '#2a2a00' }
-    : { label: 'Kritis', color: '#EF4444', bg: '#2d1515' }
+  const incomeTransactions = transactions.filter(t => t.type === 'income')
+  const thirtyDaysAgo = new Date(now); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  const fourteenDaysAgo = new Date(now); fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
+  const incomeLast30 = incomeTransactions.filter(t => new Date(t.created_at) >= thirtyDaysAgo)
+  const incomeLast14 = incomeTransactions.filter(t => new Date(t.created_at) >= fourteenDaysAgo)
+  const avg3Months = (() => {
+    const totals = [1, 2, 3].map(i => {
+      const d = new Date(now)
+      d.setMonth(d.getMonth() - i)
+      return incomeTransactions
+        .filter(t => { const td = new Date(t.created_at); return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear() })
+        .reduce((s, t) => s + t.amount, 0)
+    })
+    return totals.reduce((a, b) => a + b, 0) / 3
+  })()
+
+  const statusCashflow = incomeTransactions.length === 0
+    ? { label: 'Mulai', color: '#4F6EF7', bg: '#0f1829', desc: 'Selesaikan proyek pertamamu untuk mulai melacak cashflow.', Icon: Sparkles }
+    : incomeLast30.length === 0
+    ? { label: 'Kritis', color: '#EF4444', bg: '#2d1515', desc: 'Tidak ada pemasukan 30 hari terakhir. Yuk lamar proyek baru.', Icon: AlertCircle }
+    : incomeLast14.length === 0 || bulanIni < avg3Months
+    ? { label: 'Waspada', color: '#F59E0B', bg: '#2a2a00', desc: 'Belum ada pemasukan baru belakangan ini. Cek lamaran aktifmu.', Icon: AlertTriangle }
+    : { label: 'Aman', color: '#10B981', bg: '#152d1e', desc: 'Ada pemasukan bulan ini. Terus pertahankan!', Icon: TrendingUp }
 
   const CATEGORIES = ['Project', 'Desain Grafis', 'Web Development', 'Social Media', 'UI/UX Design', 'Penulisan', 'Lainnya']
 
@@ -194,9 +215,12 @@ export default function KeuanganPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px' }}>
               <h3 style={{ fontSize: '14px', color: '#8892a4', marginBottom: '12px' }}>Status Cashflow</h3>
-              <div style={{ backgroundColor: statusCashflow.bg, border: `1px solid ${statusCashflow.color}`, borderRadius: '8px', padding: '16px', textAlign: 'center' }}>
-                <div style={{ fontSize: '28px', fontWeight: 'bold', color: statusCashflow.color }}>{statusCashflow.label}</div>
-                <div style={{ fontSize: '12px', color: '#8892a4', marginTop: '4px' }}>Bulan ini</div>
+              <div style={{ backgroundColor: statusCashflow.bg, border: `1px solid ${statusCashflow.color}`, borderRadius: '8px', padding: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <statusCashflow.Icon size={20} color={statusCashflow.color} strokeWidth={1.5} />
+                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: statusCashflow.color }}>{statusCashflow.label}</div>
+                </div>
+                <div style={{ fontSize: '13px', color: '#8892a4', textAlign: 'center' }}>{statusCashflow.desc}</div>
               </div>
             </div>
             <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px' }}>
