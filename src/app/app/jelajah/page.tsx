@@ -17,6 +17,7 @@ export default function JelajahPage() {
   const [search, setSearch] = useState('')
   const [kategori, setKategori] = useState('Semua')
   const [budgetMax, setBudgetMax] = useState(5000000)
+  const [sortBy, setSortBy] = useState('terbaru')
   const supabase = createClient()
   const router = useRouter()
 
@@ -40,8 +41,12 @@ export default function JelajahPage() {
     if (kategori !== 'Semua') r = r.filter(p => p.category === kategori)
     if (search.trim()) r = r.filter(p => p.title.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase()))
     r = r.filter(p => p.budget_max <= budgetMax)
+    if (sortBy === 'harga-tertinggi') r = [...r].sort((a, b) => b.budget_max - a.budget_max)
+    else if (sortBy === 'harga-terendah') r = [...r].sort((a, b) => a.budget_min - b.budget_min)
+    else if (sortBy === 'deadline') r = [...r].sort((a, b) => a.estimated_days - b.estimated_days)
+    else r = [...r].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     setFiltered(r)
-  }, [search, kategori, budgetMax, projects])
+  }, [search, kategori, budgetMax, sortBy, projects])
 
   async function handleLamar(projectId: string) {
     const { data: { user } } = await supabase.auth.getUser()
@@ -83,6 +88,13 @@ export default function JelajahPage() {
               <option value={1000000}>Maks Rp1jt</option>
               <option value={2000000}>Maks Rp2jt</option>
               <option value={5000000}>Maks Rp5jt</option>
+            </select>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+              style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', color: 'white', padding: '8px 12px', fontSize: '14px', cursor: 'pointer' }}>
+              <option value="terbaru">Terbaru</option>
+              <option value="harga-tertinggi">Harga Tertinggi</option>
+              <option value="harga-terendah">Harga Terendah</option>
+              <option value="deadline">Deadline Terdekat</option>
             </select>
           </div>
         </div>
