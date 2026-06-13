@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import { Clock, Users } from 'lucide-react'
 
 const KATEGORI = ['Semua','Desain Grafis','Web Development','Social Media','Penulisan Konten','Video Editing','UI/UX Design','Terjemahan','Data Entry','Lainnya']
 type Project = { id: string; title: string; description: string; category: string; budget_min: number; budget_max: number; estimated_days: number; skills_required: string[]; created_at: string }
@@ -18,6 +19,8 @@ export default function JelajahPage() {
   const [kategori, setKategori] = useState('Semua')
   const [budgetMax, setBudgetMax] = useState(5000000)
   const [sortBy, setSortBy] = useState('terbaru')
+  const [pelamarCount, setPelamarCount] = useState<Record<string, number>>({})
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
 
   const [showModal, setShowModal] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
@@ -31,8 +34,22 @@ export default function JelajahPage() {
   useEffect(() => {
     async function fetchData() {
       const { data } = await supabase.from('projects').select('*').eq('status', 'open').order('created_at', { ascending: false })
-      setProjects(data || [])
-      setFiltered(data || [])
+      const projs = data || []
+      setProjects(projs)
+      setFiltered(projs)
+
+      if (projs.length > 0) {
+        const { data: apps } = await supabase
+          .from('applications')
+          .select('project_id')
+          .in('project_id', projs.map((p: Project) => p.id))
+        const counts: Record<string, number> = {}
+        for (const app of (apps || [])) {
+          counts[app.project_id] = (counts[app.project_id] || 0) + 1
+        }
+        setPelamarCount(counts)
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data: apps } = await supabase.from('applications').select('project_id').eq('freelancer_id', user.id)
@@ -93,7 +110,6 @@ export default function JelajahPage() {
 
     let { error } = await supabase.from('applications').insert(payload)
 
-    // proposed_budget column may not exist — retry without it
     if (error && proposedBudget) {
       const { error: err2 } = await supabase.from('applications').insert({
         project_id: selectedProject.id,
@@ -116,6 +132,13 @@ export default function JelajahPage() {
     borderRadius: '8px', padding: '12px', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box',
   }
 
+  const clampStyle: React.CSSProperties = {
+    overflow: 'hidden',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+  }
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
       <style>{`
@@ -131,6 +154,7 @@ export default function JelajahPage() {
         <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Jelajah Proyek</h1>
         <p style={{ color: '#8892a4', marginBottom: '24px' }}>{loading ? 'Memuat...' : filtered.length + ' proyek tersedia'}</p>
 
+        {/* Filter panel */}
         <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
           <input type="text" placeholder="Cari proyek atau skill..." value={search} onChange={e => setSearch(e.target.value)}
             style={{ width: '100%', padding: '10px 14px', backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }} />
@@ -160,6 +184,7 @@ export default function JelajahPage() {
           </div>
         </div>
 
+        {/* Project list */}
         {loading ? (
           <div style={{ color: '#8892a4', textAlign: 'center', padding: '60px' }}>Memuat proyek...</div>
         ) : filtered.length === 0 ? (
@@ -172,36 +197,93 @@ export default function JelajahPage() {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {filtered.map(project => {
               const sudahDilamar = appliedIds.includes(project.id)
               const sedangMelamar = applyingId === project.id
+              const isHovered = hoveredId === project.id
+              const skills = project.skills_required || []
+              const visibleSkills = skills.slice(0, 3)
+              const extraSkills = skills.length - 3
+              const pelamar = pelamarCount[project.id] || 0
+
               return (
-                <div key={project.id} style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                    <div>
-                      <span style={{ backgroundColor: '#1a2340', color: '#4F6EF7', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'inline-block' }}>{project.category}</span>
-                      <a href={`/proyek/${project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                        <h2 style={{ fontSize: '18px', margin: '8px 0 0', fontWeight: 'bold', cursor: 'pointer' }}>{project.title}</h2>
-                      </a>
-                    </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
-                      <div style={{ color: '#22D3EE', fontWeight: 'bold', fontSize: '16px' }}>{fmt(project.budget_min)} – {fmt(project.budget_max)}</div>
-                      <div style={{ color: '#8892a4', fontSize: '12px', marginTop: '4px' }}>{project.estimated_days} hari</div>
-                    </div>
+                <div
+                  key={project.id}
+                  onClick={() => router.push(`/proyek/${project.id}`)}
+                  onMouseEnter={() => setHoveredId(project.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  style={{
+                    background: isHovered ? 'rgba(79,110,247,0.04)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${isHovered ? 'rgba(79,110,247,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                    borderRadius: '16px',
+                    padding: '24px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {/* Top row: category badge + budget */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <span style={{ background: 'rgba(79,110,247,0.12)', color: '#4F6EF7', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500 }}>
+                      {project.category}
+                    </span>
+                    <span style={{ fontSize: '15px', fontWeight: 700, color: '#22D3EE' }}>
+                      {fmt(project.budget_min)} – {fmt(project.budget_max)}
+                    </span>
                   </div>
-                  <p style={{ color: '#8892a4', fontSize: '14px', lineHeight: '1.6', marginBottom: '16px' }}>{project.description}</p>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                    {(project.skills_required || []).map(skill => (
-                      <span key={skill} style={{ backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', color: '#8892a4', fontSize: '12px', padding: '4px 10px', borderRadius: '6px' }}>{skill}</span>
-                    ))}
+
+                  {/* Title */}
+                  <h2 style={{ fontSize: '17px', fontWeight: 600, color: 'white', margin: '0 0 6px', ...clampStyle }}>
+                    {project.title}
+                  </h2>
+
+                  {/* Description */}
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: '0 0 14px', lineHeight: '1.6', ...clampStyle }}>
+                    {project.description}
+                  </p>
+
+                  {/* Skill tags */}
+                  {visibleSkills.length > 0 && (
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                      {visibleSkills.map(skill => (
+                        <span key={skill} style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px' }}>
+                          {skill}
+                        </span>
+                      ))}
+                      {extraSkills > 0 && (
+                        <span style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px' }}>
+                          +{extraSkills} lagi
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Bottom row: meta + button */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Clock size={13} strokeWidth={1.5} color="rgba(255,255,255,0.4)" />
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>{project.estimated_days} hari</span>
+                      <span style={{ display: 'inline-block', width: '3px', height: '3px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', margin: '0 2px' }} />
+                      <Users size={13} strokeWidth={1.5} color="rgba(255,255,255,0.4)" />
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>{pelamar} pelamar</span>
+                    </div>
+                    <button
+                      onClick={e => { e.stopPropagation(); if (!sudahDilamar && !sedangMelamar) openModal(project) }}
+                      disabled={sudahDilamar || sedangMelamar}
+                      style={{
+                        background: sudahDilamar ? 'transparent' : '#4F6EF7',
+                        color: sudahDilamar ? 'rgba(255,255,255,0.5)' : 'white',
+                        border: sudahDilamar ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                        borderRadius: '8px',
+                        padding: '8px 18px',
+                        fontSize: '13px',
+                        fontWeight: 500,
+                        cursor: sudahDilamar ? 'default' : 'pointer',
+                        flexShrink: 0,
+                      }}>
+                      {sedangMelamar ? 'Mengirim...' : sudahDilamar ? '✓ Sudah Dilamar' : 'Lamar Proyek'}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => !sudahDilamar && openModal(project)}
-                    disabled={sudahDilamar || sedangMelamar}
-                    style={{ backgroundColor: sudahDilamar ? '#1a2340' : '#4F6EF7', color: sudahDilamar ? '#4F6EF7' : 'white', border: sudahDilamar ? '1px solid #4F6EF7' : 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', fontWeight: 'bold', cursor: sudahDilamar ? 'default' : 'pointer' }}>
-                    {sedangMelamar ? 'Mengirim...' : sudahDilamar ? '✓ Sudah Dilamar' : 'Lamar Proyek'}
-                  </button>
                 </div>
               )
             })}
@@ -209,7 +291,7 @@ export default function JelajahPage() {
         )}
       </div>
 
-      {/* Modal konfirmasi lamaran */}
+      {/* Modal */}
       {showModal && selectedProject && (
         <div
           onClick={e => { if (e.target === e.currentTarget) closeModal() }}
@@ -218,7 +300,6 @@ export default function JelajahPage() {
             <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>Kirim Lamaran</h2>
             <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '24px' }}>{selectedProject.title}</p>
 
-            {/* Cover letter */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>
                 Kenapa kamu cocok untuk proyek ini? <span style={{ color: '#EF4444' }}>*</span>
@@ -240,7 +321,6 @@ export default function JelajahPage() {
               )}
             </div>
 
-            {/* Harga penawaran */}
             <div style={{ marginBottom: '28px' }}>
               <label style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>
                 Harga Penawaran (Rp)
@@ -260,7 +340,6 @@ export default function JelajahPage() {
               </p>
             </div>
 
-            {/* Aksi */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button onClick={closeModal}
                 style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', cursor: 'pointer' }}>
