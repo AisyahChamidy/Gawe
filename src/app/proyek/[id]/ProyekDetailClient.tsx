@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
+import { MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import NavbarKlien from '@/components/NavbarKlien'
@@ -9,6 +10,13 @@ type Project = {
   id: string; title: string; description: string; category: string
   budget_min: number; budget_max: number; estimated_days: number
   skills_required: string[]; created_at: string; status: string; client_id: string
+}
+
+type ClientProfile = {
+  full_name: string
+  created_at: string
+  trust_score: number | null
+  city: string | null
 }
 
 const fmt = (n: number) =>
@@ -51,13 +59,20 @@ function PublicNavbar() {
   )
 }
 
-export default function ProyekDetailClient({ project }: { project: Project }) {
+export default function ProyekDetailClient({
+  project,
+  clientProfile,
+  clientCompletedProjects,
+}: {
+  project: Project
+  clientProfile: ClientProfile | null
+  clientCompletedProjects: number
+}) {
   const supabase = createClient()
 
   const [userRole,     setUserRole]     = useState<string | null>(null)
   const [loadingAuth,  setLoadingAuth]  = useState(true)
   const [user,         setUser]         = useState<any>(null)
-  const [clientName,   setClientName]   = useState('')
   const [pelamarCount, setPelamarCount] = useState(0)
   const [sudahDilamar, setSudahDilamar] = useState(false)
   const [applying,     setApplying]     = useState(false)
@@ -68,11 +83,10 @@ export default function ProyekDetailClient({ project }: { project: Project }) {
       const { data: { user: u } } = await supabase.auth.getUser()
       setUser(u)
 
-      const [{ data: clientProfile }, { count }] = await Promise.all([
-        supabase.from('profiles').select('full_name').eq('id', project.client_id).single(),
-        supabase.from('applications').select('id', { count: 'exact', head: true }).eq('project_id', project.id),
-      ])
-      setClientName(clientProfile?.full_name || 'Klien')
+      const { count } = await supabase
+        .from('applications')
+        .select('id', { count: 'exact', head: true })
+        .eq('project_id', project.id)
       setPelamarCount(count || 0)
 
       if (u) {
@@ -100,11 +114,12 @@ export default function ProyekDetailClient({ project }: { project: Project }) {
   }
 
   const st = statusConfig[project.status] || statusConfig.open
+  const joinYear = clientProfile ? new Date(clientProfile.created_at).getFullYear() : null
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
 
-      {/* Navbar: publik saat loading auth, lalu kondisional sesuai role */}
+      {/* Navbar */}
       {loadingAuth
         ? <PublicNavbar />
         : userRole === 'client'
@@ -114,7 +129,7 @@ export default function ProyekDetailClient({ project }: { project: Project }) {
             : <PublicNavbar />
       }
 
-      {/* Breadcrumb: sembunyikan saat loading auth, tampil setelah role diketahui */}
+      {/* Breadcrumb */}
       {!loadingAuth && (
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px clamp(16px, 4vw, 32px) 0' }}>
           {userRole === 'freelancer' || userRole === 'both' ? (
@@ -147,7 +162,7 @@ export default function ProyekDetailClient({ project }: { project: Project }) {
               {project.title}
             </h1>
             <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: '#8892a4' }}>
-              <span>👤 {clientName}</span>
+              <span>👤 {clientProfile?.full_name || 'Klien'}</span>
               <span>📅 Dipost {timeAgo(project.created_at)}</span>
               <span>👥 {pelamarCount} pelamar</span>
             </div>
@@ -186,7 +201,9 @@ export default function ProyekDetailClient({ project }: { project: Project }) {
         </div>
 
         {/* Right — sidebar */}
-        <div style={{ position: 'sticky', top: '84px' }}>
+        <div style={{ position: 'sticky', top: '84px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+          {/* Card: budget + lamar */}
           <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '16px', padding: '24px' }}>
             <div style={{ fontSize: '22px', fontWeight: '800', color: '#22D3EE', fontFamily: 'Outfit, sans-serif', marginBottom: '4px' }}>
               {fmt(project.budget_min)}
@@ -239,8 +256,55 @@ export default function ProyekDetailClient({ project }: { project: Project }) {
               </div>
             </div>
           </div>
-        </div>
 
+          {/* Card: Tentang Klien */}
+          {clientProfile && (
+            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '20px' }}>
+              <div style={{ fontSize: '11px', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.4)', fontWeight: '500', marginBottom: '12px', textTransform: 'uppercase' }}>
+                Tentang Klien
+              </div>
+
+              <div style={{ fontSize: '15px', fontWeight: '600', color: 'white', marginBottom: '4px' }}>
+                {clientProfile.full_name}
+              </div>
+
+              {clientProfile.city && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>
+                  <MapPin size={12} strokeWidth={1.5} />
+                  {clientProfile.city}
+                </div>
+              )}
+
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '12px 0' }} />
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#22D3EE' }}>
+                    {clientCompletedProjects}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Proyek Selesai</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#22D3EE' }}>
+                    {joinYear}
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Bergabung</div>
+                </div>
+              </div>
+
+              {clientCompletedProjects > 0 ? (
+                <span style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#10B981', borderRadius: '20px', padding: '3px 10px', fontSize: '12px' }}>
+                  ✓ Klien Aktif
+                </span>
+              ) : (
+                <span style={{ backgroundColor: 'rgba(245,158,11,0.1)', color: '#F59E0B', borderRadius: '20px', padding: '3px 10px', fontSize: '12px' }}>
+                  Klien Baru
+                </span>
+              )}
+            </div>
+          )}
+
+        </div>
       </div>
 
       {!user && !loadingAuth && (
