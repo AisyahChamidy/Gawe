@@ -18,6 +18,7 @@ export default function ProyekPublikPage() {
   const [kategori, setKategori] = useState('')
   const [user, setUser] = useState<any>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [loadingAuth, setLoadingAuth] = useState(true)
   const supabase = createClient()
   const router = useRouter()
 
@@ -34,6 +35,7 @@ export default function ProyekPublikPage() {
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', u.id).single()
         setUserRole(profile?.role || 'freelancer')
       }
+      setLoadingAuth(false)
     }
     load()
   }, [])
@@ -53,9 +55,9 @@ export default function ProyekPublikPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
-      {user && userRole === 'client' ? (
+      {loadingAuth ? null : userRole === 'client' ? (
         <NavbarKlien />
-      ) : user ? (
+      ) : userRole ? (
         <Navbar />
       ) : (
         <div style={{ backgroundColor: 'rgba(10,14,26,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
