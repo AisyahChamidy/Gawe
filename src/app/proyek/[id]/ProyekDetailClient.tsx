@@ -114,13 +114,20 @@ export default function ProyekDetailClient({ project }: { project: Project }) {
             : <PublicNavbar />
       }
 
-      {/* Breadcrumb: Jelajah Proyek untuk freelancer, Semua Proyek untuk publik/klien */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px clamp(16px, 4vw, 32px) 0' }}>
-        <a href={userRole === 'freelancer' ? '/app/jelajah' : '/proyek'}
-          style={{ color: '#8892a4', textDecoration: 'none', fontSize: '13px' }}>
-          ← {userRole === 'freelancer' ? 'Jelajah Proyek' : 'Semua Proyek'}
-        </a>
-      </div>
+      {/* Breadcrumb: sembunyikan saat loading auth, tampil setelah role diketahui */}
+      {!loadingAuth && (
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px clamp(16px, 4vw, 32px) 0' }}>
+          {userRole === 'freelancer' || userRole === 'both' ? (
+            <a href="/app/jelajah" style={{ color: '#8892a4', textDecoration: 'none', fontSize: '13px' }}>
+              ← Jelajah Proyek
+            </a>
+          ) : (
+            <a href="/proyek" style={{ color: '#8892a4', textDecoration: 'none', fontSize: '13px' }}>
+              ← Semua Proyek
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Main layout */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px clamp(16px, 4vw, 32px) 60px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: '32px', alignItems: 'start' }}>
