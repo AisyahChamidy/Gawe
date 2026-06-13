@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import NavbarKlien from '@/components/NavbarKlien'
 
@@ -20,7 +19,6 @@ export default function ProyekPublikPage() {
   const [userRole, setUserRole] = useState<string | null>(null)
   const [loadingAuth, setLoadingAuth] = useState(true)
   const supabase = createClient()
-  const router = useRouter()
 
   useEffect(() => {
     async function load() {
@@ -40,11 +38,6 @@ export default function ProyekPublikPage() {
     load()
   }, [])
 
-  async function handleLamar() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/masuk'); return }
-    router.push('/app/jelajah')
-  }
 
   const filtered = projects.filter(p =>
     (!search || p.title.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase())) &&
@@ -127,10 +120,10 @@ export default function ProyekPublikPage() {
                     <span key={skill} style={{ backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', color: '#8892a4', fontSize: '12px', padding: '4px 10px', borderRadius: '6px' }}>{skill}</span>
                   ))}
                 </div>
-                <button onClick={handleLamar}
-                  style={{ backgroundColor: '#4F6EF7', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
-                  Lamar Proyek
-                </button>
+                <a href={`/proyek/${project.id}`}
+                  style={{ display: 'inline-block', backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', fontWeight: 'bold' }}>
+                  Lihat & Lamar
+                </a>
               </div>
             ))}
           </div>

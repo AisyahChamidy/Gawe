@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useParams } from 'next/navigation'
+import Navbar from '@/components/Navbar'
+import NavbarKlien from '@/components/NavbarKlien'
 
 type Profile = {
   id: string; full_name: string; headline: string; bio: string
@@ -22,16 +24,24 @@ export default function FreelancerProfilePage() {
   const [avgRating,    setAvgRating]   = useState(0)
   const [loading,      setLoading]     = useState(true)
   const [notFound,     setNotFound]    = useState(false)
+  const [userRole,     setUserRole]    = useState<string | null>(null)
+  const [loadingAuth,  setLoadingAuth] = useState(true)
 
   useEffect(() => {
     async function load() {
-      const [{ data: prof }, { count }, { data: revData }] = await Promise.all([
+      const [{ data: prof }, { count }, { data: revData }, { data: { user } }] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', freelancerId).single(),
         supabase.from('applications').select('id', { count: 'exact', head: true })
           .eq('freelancer_id', freelancerId).eq('status', 'accepted'),
         supabase.from('reviews').select('*').eq('reviewee_id', freelancerId)
           .order('created_at', { ascending: false }).limit(5),
+        supabase.auth.getUser(),
       ])
+      if (user) {
+        const { data: roleData } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+        setUserRole(roleData?.role || 'freelancer')
+      }
+      setLoadingAuth(false)
       if (!prof) { setNotFound(true); setLoading(false); return }
       setProfile(prof)
       setAccepted(count || 0)
@@ -70,21 +80,26 @@ export default function FreelancerProfilePage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
-      {/* Navbar landing */}
-      <div style={{ backgroundColor: 'rgba(10,14,26,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
-        <a href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '20px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
-        </a>
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-          <a href="/#cara-kerja" style={navLink}>Cara Kerja</a>
-          <a href="/proyek" style={navLink}>Proyek</a>
-          <a href="/auth/masuk" style={navLink}>Masuk</a>
-          <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
-          <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: '8px' }}>
-            Daftar Gratis
+      {loadingAuth ? null : userRole === 'client' ? (
+        <NavbarKlien />
+      ) : userRole ? (
+        <Navbar />
+      ) : (
+        <div style={{ backgroundColor: 'rgba(10,14,26,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
+          <a href="/" style={{ textDecoration: 'none' }}>
+            <span style={{ fontSize: '20px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
           </a>
+          <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+            <a href="/#cara-kerja" style={navLink}>Cara Kerja</a>
+            <a href="/proyek" style={navLink}>Proyek</a>
+            <a href="/auth/masuk" style={navLink}>Masuk</a>
+            <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
+            <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: '8px' }}>
+              Daftar Gratis
+            </a>
+          </div>
         </div>
-      </div>
+      )}
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px clamp(16px, 4vw, 32px) 80px' }}>
 
