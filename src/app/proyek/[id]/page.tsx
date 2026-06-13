@@ -131,7 +131,10 @@ export default function ProyekDetailPublikPage() {
 
       {/* Breadcrumb */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px clamp(16px, 4vw, 32px) 0' }}>
-        <a href="/proyek" style={{ color: '#8892a4', textDecoration: 'none', fontSize: '13px' }}>← Semua Proyek</a>
+        <a href={user && userRole === 'freelancer' ? '/app/jelajah' : '/proyek'}
+          style={{ color: '#8892a4', textDecoration: 'none', fontSize: '13px' }}>
+          ← {user && userRole === 'freelancer' ? 'Jelajah Proyek' : 'Semua Proyek'}
+        </a>
       </div>
 
       {/* Main layout */}
