@@ -4,12 +4,29 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import NavbarKlien from '@/components/NavbarKlien'
 
-type Application = { id: string; status: string; created_at: string; freelancer_id: string; freelancer_name: string }
+type Application = {
+  id: string
+  status: string
+  created_at: string
+  freelancer_id: string
+  freelancer_name: string
+  trust_score: number | null
+  headline: string | null
+  cover_letter: string | null
+  proposed_budget: number | null
+}
 type Project = { id: string; title: string; category: string; budget_min: number; budget_max: number; status: string; applications: Application[] }
 type ReviewedSet = Set<string>
 
 function formatRupiah(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
+}
+
+function formatRelativeDate(dateStr: string): string {
+  const diffDays = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000)
+  if (diffDays === 0) return 'Hari ini'
+  if (diffDays === 1) return '1 hari lalu'
+  return `${diffDays} hari lalu`
 }
 
 const projectStatusBadge: Record<string, { label: string; color: string; bg: string }> = {
@@ -24,14 +41,23 @@ const projectStatusBadge: Record<string, { label: string; color: string; bg: str
 }
 
 export default function KlienProyekPage() {
-  const [projects,    setProjects]    = useState<Project[]>([])
-  const [reviewedIds, setReviewedIds] = useState<ReviewedSet>(new Set())
-  const [loading,     setLoading]     = useState(true)
+  const [projects,      setProjects]      = useState<Project[]>([])
+  const [reviewedIds,   setReviewedIds]   = useState<ReviewedSet>(new Set())
+  const [loading,       setLoading]       = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const router  = useRouter()
+  const [expandedIds,   setExpandedIds]   = useState<Set<string>>(new Set())
+  const router   = useRouter()
   const supabase = createClient()
 
   useEffect(() => { fetchProjects() }, [])
+
+  function toggleExpand(id: string) {
+    setExpandedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
 
   async function fetchProjects() {
     const { data: { user } } = await supabase.auth.getUser()
@@ -39,7 +65,7 @@ export default function KlienProyekPage() {
 
     const { data: projectsData, error: projError } = await supabase
       .from('projects')
-      .select('id, title, category, budget_min, budget_max, status, applications(id, status, created_at, freelancer_id)')
+      .select('id, title, category, budget_min, budget_max, status, applications(id, status, created_at, freelancer_id, cover_letter, proposed_budget)')
       .eq('client_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -47,18 +73,34 @@ export default function KlienProyekPage() {
     if (!projectsData) { setLoading(false); return }
 
     const ids = [...new Set(projectsData.flatMap((p: any) => (p.applications || []).map((a: any) => a.freelancer_id)))]
-    let names: Record<string, string> = {}
+    type ProfileInfo = { name: string; trust_score: number | null; headline: string | null }
+    const profileMap: Record<string, ProfileInfo> = {}
     if (ids.length > 0) {
-      const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', ids)
-      ;(profiles || []).forEach((p: any) => { names[p.id] = p.full_name || p.id.slice(0, 8) })
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, trust_score, headline')
+        .in('id', ids)
+      ;(profiles || []).forEach((p: any) => {
+        profileMap[p.id] = {
+          name: p.full_name || p.id.slice(0, 8),
+          trust_score: p.trust_score ?? null,
+          headline: p.headline || null,
+        }
+      })
     }
 
     setProjects(projectsData.map((p: any) => ({
       ...p,
-      applications: (p.applications || []).map((a: any) => ({ ...a, freelancer_name: names[a.freelancer_id] || 'Pengguna' })),
+      applications: (p.applications || []).map((a: any) => ({
+        ...a,
+        freelancer_name:  profileMap[a.freelancer_id]?.name        ?? 'Pengguna',
+        trust_score:      profileMap[a.freelancer_id]?.trust_score  ?? null,
+        headline:         profileMap[a.freelancer_id]?.headline     ?? null,
+        cover_letter:     a.cover_letter   ?? null,
+        proposed_budget:  a.proposed_budget ?? null,
+      })),
     })))
 
-    // Fetch yang sudah dirating
     const completedIds = projectsData.filter((p: any) => p.status === 'completed').map((p: any) => p.id)
     if (completedIds.length > 0) {
       const { data: revData } = await supabase
@@ -70,13 +112,8 @@ export default function KlienProyekPage() {
 
   async function handleTerima(appId: string, projectId: string, freelancerId: string) {
     setActionLoading(appId)
-
     await supabase.from('applications').update({ status: 'accepted' }).eq('id', appId)
-    await supabase.from('projects').update({
-      status: 'in_review',
-      selected_freelancer_id: freelancerId,
-    }).eq('id', projectId)
-
+    await supabase.from('projects').update({ status: 'in_review', selected_freelancer_id: freelancerId }).eq('id', projectId)
     await fetchProjects()
     setActionLoading(null)
   }
@@ -96,6 +133,7 @@ export default function KlienProyekPage() {
         <p style={{ color: '#8892a4', marginBottom: '32px' }}>
           {loading ? 'Memuat...' : projects.length + ' proyek diposting'}
         </p>
+
         {loading ? (
           <div style={{ color: '#8892a4', textAlign: 'center', padding: '60px' }}>Memuat...</div>
         ) : projects.length === 0 ? (
@@ -103,7 +141,9 @@ export default function KlienProyekPage() {
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
             <p style={{ color: 'white', fontWeight: 'bold', fontSize: '16px', marginBottom: '8px' }}>Belum ada proyek yang dipost.</p>
             <p style={{ color: '#8892a4', fontSize: '14px', marginBottom: '20px' }}>Mulai posting proyek dan temukan freelancer yang tepat!</p>
-            <a href="/klien/post-proyek" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: '#8B5CF6', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>+ Post Proyek Pertamamu</a>
+            <a href="/klien/post-proyek" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: '#8B5CF6', color: 'white', borderRadius: '8px', textDecoration: 'none', fontSize: '14px', fontWeight: 'bold' }}>
+              + Post Proyek Pertamamu
+            </a>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -111,6 +151,7 @@ export default function KlienProyekPage() {
               const badge = projectStatusBadge[project.status] || projectStatusBadge.open
               return (
                 <div key={project.id} style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', overflow: 'hidden' }}>
+
                   {/* Project header */}
                   <div style={{ padding: '20px 24px', borderBottom: '1px solid #1e2d4a' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
@@ -124,7 +165,6 @@ export default function KlienProyekPage() {
                           {badge.label}
                         </span>
                         <span style={{ color: '#8892a4', fontSize: '12px' }}>{project.applications?.length || 0} pelamar</span>
-                        {/* Action buttons per status */}
                         {project.status === 'in_review' && (
                           <a href={`/klien/proyek/${project.id}/bayar`}
                             style={{ padding: '6px 14px', backgroundColor: '#10B981', color: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: '700', textDecoration: 'none' }}>
@@ -159,50 +199,117 @@ export default function KlienProyekPage() {
                     </div>
                   </div>
 
-                  {/* Applications */}
+                  {/* Applications list */}
                   <div style={{ padding: '16px 24px' }}>
                     {!project.applications || project.applications.length === 0 ? (
                       <p style={{ color: '#8892a4', fontSize: '14px', textAlign: 'center', padding: '20px' }}>Belum ada pelamar</p>
                     ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {project.applications.map(app => (
-                          <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: '#0A0E1A', borderRadius: '8px', border: '1px solid #1e2d4a', flexWrap: 'wrap', gap: '8px' }}>
-                            <div>
-                              <a href={`/freelancer/${app.freelancer_id}`} style={{ fontWeight: 'bold', fontSize: '14px', color: 'white', textDecoration: 'none' }}
-                                onMouseEnter={e => (e.currentTarget.style.color = '#4F6EF7')}
-                                onMouseLeave={e => (e.currentTarget.style.color = 'white')}>
-                                {app.freelancer_name} ↗
-                              </a>
-                              <div style={{ color: '#8892a4', fontSize: '12px', marginTop: '2px' }}>
-                                {new Date(app.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                              {app.status === 'pending' ? (
-                                <>
-                                  <button onClick={() => handleTerima(app.id, project.id, app.freelancer_id)} disabled={actionLoading === app.id}
-                                    style={{ padding: '6px 14px', backgroundColor: '#10B981', color: 'white', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', opacity: actionLoading === app.id ? 0.7 : 1 }}>
-                                    Terima
-                                  </button>
-                                  <button onClick={() => handleTolak(app.id)} disabled={actionLoading === app.id}
-                                    style={{ padding: '6px 14px', backgroundColor: 'transparent', color: '#EF4444', border: '1px solid #EF4444', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', opacity: actionLoading === app.id ? 0.7 : 1 }}>
-                                    Tolak
-                                  </button>
-                                </>
-                              ) : app.status === 'accepted' ? (
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  <a href={'/klien/proyek/' + project.id} style={{ padding: '4px 12px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', textDecoration: 'none' }}>💬 Chat</a>
-                                  <span style={{ backgroundColor: '#152d1e', color: '#10B981', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' }}>✓ Diterima</span>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {project.applications.map((app, idx) => {
+                          const isExpanded  = expandedIds.has(app.id)
+                          const coverLetter = app.cover_letter?.trim() || null
+                          const isLast      = idx === project.applications.length - 1
+
+                          return (
+                            <div key={app.id}>
+                              <div style={{ padding: '16px', backgroundColor: '#0A0E1A', borderRadius: '8px', border: '1px solid #1e2d4a' }}>
+
+                                {/* Row 1: name + trust score badge + time */}
+                                <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '6px' }}>
+                                  <a href={`/freelancer/${app.freelancer_id}`}
+                                    style={{ fontWeight: 600, fontSize: '14px', color: 'white', textDecoration: 'none' }}
+                                    onMouseEnter={e => (e.currentTarget.style.color = '#4F6EF7')}
+                                    onMouseLeave={e => (e.currentTarget.style.color = 'white')}>
+                                    {app.freelancer_name} ↗
+                                  </a>
+                                  {app.trust_score !== null && (
+                                    <span style={{ backgroundColor: 'rgba(79,110,247,0.15)', color: '#4F6EF7', borderRadius: '20px', padding: '2px 10px', fontSize: '12px' }}>
+                                      Trust Score: {app.trust_score}
+                                    </span>
+                                  )}
+                                  <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                                    {formatRelativeDate(app.created_at)}
+                                  </span>
                                 </div>
-                              ) : (
-                                <span style={{ backgroundColor: '#2d1515', color: '#EF4444', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' }}>Ditolak</span>
-                              )}
+
+                                {/* Row 2: headline */}
+                                {app.headline && (
+                                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', fontStyle: 'italic', marginBottom: '10px' }}>
+                                    {app.headline}
+                                  </div>
+                                )}
+
+                                {/* Row 3: cover letter */}
+                                <div style={{ marginBottom: '10px' }}>
+                                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px' }}>Pesan:</div>
+                                  {coverLetter ? (
+                                    <>
+                                      <div style={isExpanded ? {
+                                        fontSize: '14px', color: 'rgba(255,255,255,0.8)', whiteSpace: 'pre-wrap',
+                                      } : {
+                                        fontSize: '14px', color: 'rgba(255,255,255,0.8)', whiteSpace: 'pre-wrap',
+                                        overflow: 'hidden', display: '-webkit-box',
+                                        WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+                                      } as React.CSSProperties}>
+                                        {coverLetter}
+                                      </div>
+                                      {coverLetter.length > 200 && (
+                                        <button onClick={() => toggleExpand(app.id)}
+                                          style={{ marginTop: '4px', background: 'none', border: 'none', color: '#4F6EF7', fontSize: '12px', cursor: 'pointer', padding: 0 }}>
+                                          {isExpanded ? 'Sembunyikan' : 'Lihat selengkapnya'}
+                                        </button>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>
+                                      Tidak ada pesan dari pelamar.
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Row 4: proposed budget */}
+                                {app.proposed_budget != null && (
+                                  <div style={{ marginBottom: '12px' }}>
+                                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Penawaran: </span>
+                                    <span style={{ fontSize: '15px', fontWeight: 600, color: '#22D3EE' }}>
+                                      {formatRupiah(app.proposed_budget)}
+                                    </span>
+                                  </div>
+                                )}
+
+                                {/* Bottom: action buttons */}
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                  {app.status === 'pending' ? (
+                                    <>
+                                      <button onClick={() => handleTerima(app.id, project.id, app.freelancer_id)} disabled={actionLoading === app.id}
+                                        style={{ padding: '6px 14px', backgroundColor: '#10B981', color: 'white', border: 'none', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', opacity: actionLoading === app.id ? 0.7 : 1 }}>
+                                        Terima
+                                      </button>
+                                      <button onClick={() => handleTolak(app.id)} disabled={actionLoading === app.id}
+                                        style={{ padding: '6px 14px', backgroundColor: 'transparent', color: '#EF4444', border: '1px solid #EF4444', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', opacity: actionLoading === app.id ? 0.7 : 1 }}>
+                                        Tolak
+                                      </button>
+                                    </>
+                                  ) : app.status === 'accepted' ? (
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                      <a href={'/klien/proyek/' + project.id} style={{ padding: '4px 12px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', textDecoration: 'none' }}>💬 Chat</a>
+                                      <span style={{ backgroundColor: '#152d1e', color: '#10B981', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' }}>✓ Diterima</span>
+                                    </div>
+                                  ) : (
+                                    <span style={{ backgroundColor: '#2d1515', color: '#EF4444', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold' }}>Ditolak</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Separator between applicant cards */}
+                              {!isLast && <div style={{ height: '1px', backgroundColor: '#1e2d4a', margin: '8px 0' }} />}
                             </div>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     )}
                   </div>
+
                 </div>
               )
             })}
