@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import Navbar from '@/components/Navbar'
+import NavbarKlien from '@/components/NavbarKlien'
 
 type Project = { id: string; title: string; description: string; category: string; budget_min: number; budget_max: number; estimated_days: number; skills_required: string[]; created_at: string }
 
@@ -14,12 +16,26 @@ export default function ProyekPublikPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [kategori, setKategori] = useState('')
+  const [user, setUser] = useState<any>(null)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
 
   useEffect(() => {
-    supabase.from('projects').select('*').eq('status', 'open').order('created_at', { ascending: false })
-      .then(({ data }) => { setProjects(data || []); setLoading(false) })
+    async function load() {
+      const [{ data }, { data: { user: u } }] = await Promise.all([
+        supabase.from('projects').select('*').eq('status', 'open').order('created_at', { ascending: false }),
+        supabase.auth.getUser(),
+      ])
+      setProjects(data || [])
+      setLoading(false)
+      if (u) {
+        setUser(u)
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', u.id).single()
+        setUserRole(profile?.role || 'freelancer')
+      }
+    }
+    load()
   }, [])
 
   async function handleLamar() {
@@ -37,20 +53,26 @@ export default function ProyekPublikPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
-      <div style={{ backgroundColor: 'rgba(10,14,26,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
-        <a href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '20px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
-        </a>
-        <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
-          <a href="/#cara-kerja" style={navLink}>Cara Kerja</a>
-          <a href="/proyek" style={{ ...navLink, color: 'white', fontWeight: '600' }}>Proyek</a>
-          <a href="/auth/masuk" style={navLink}>Masuk</a>
-          <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
-          <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: '8px' }}>
-            Daftar Gratis
+      {user && userRole === 'client' ? (
+        <NavbarKlien />
+      ) : user ? (
+        <Navbar />
+      ) : (
+        <div style={{ backgroundColor: 'rgba(10,14,26,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
+          <a href="/" style={{ textDecoration: 'none' }}>
+            <span style={{ fontSize: '20px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
           </a>
+          <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
+            <a href="/#cara-kerja" style={navLink}>Cara Kerja</a>
+            <a href="/proyek" style={{ ...navLink, color: 'white', fontWeight: '600' }}>Proyek</a>
+            <a href="/auth/masuk" style={navLink}>Masuk</a>
+            <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
+            <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: '8px' }}>
+              Daftar Gratis
+            </a>
+          </div>
         </div>
-      </div>
+      )}
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 32px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>Proyek Tersedia</h1>
