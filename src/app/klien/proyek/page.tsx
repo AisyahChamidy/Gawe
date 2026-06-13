@@ -63,16 +63,33 @@ export default function KlienProyekPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/masuk'); return }
 
+    // Step 1: fetch projects tanpa nested applications — isolate schema issues
     const { data: projectsData, error: projError } = await supabase
       .from('projects')
-      .select('id, title, category, budget_min, budget_max, status, applications(id, status, created_at, freelancer_id, cover_letter, proposed_budget)')
+      .select('id, title, category, budget_min, budget_max, status')
       .eq('client_id', user.id)
       .order('created_at', { ascending: false })
 
-    if (projError) { setLoading(false); return }
-    if (!projectsData) { setLoading(false); return }
+    if (projError || !projectsData) { setLoading(false); return }
 
-    const ids = [...new Set(projectsData.flatMap((p: any) => (p.applications || []).map((a: any) => a.freelancer_id)))]
+    // Step 2: fetch applications secara terpisah (kalau cover_letter/proposed_budget
+    // belum ada di DB, proyek tetap muncul dengan aplikasi kosong)
+    const projectIds = projectsData.map((p: any) => p.id)
+    const appsByProject: Record<string, any[]> = {}
+    if (projectIds.length > 0) {
+      const { data: appsData } = await supabase
+        .from('applications')
+        .select('id, status, created_at, freelancer_id, project_id, cover_letter, proposed_budget')
+        .in('project_id', projectIds)
+      ;(appsData || []).forEach((a: any) => {
+        if (!appsByProject[a.project_id]) appsByProject[a.project_id] = []
+        appsByProject[a.project_id].push(a)
+      })
+    }
+
+    // Step 3: fetch profiles untuk semua freelancer unik
+    const allApps = Object.values(appsByProject).flat()
+    const ids = [...new Set(allApps.map((a: any) => a.freelancer_id))]
     type ProfileInfo = { name: string; trust_score: number | null; headline: string | null }
     const profileMap: Record<string, ProfileInfo> = {}
     if (ids.length > 0) {
@@ -89,15 +106,16 @@ export default function KlienProyekPage() {
       })
     }
 
+    // Step 4: gabungkan
     setProjects(projectsData.map((p: any) => ({
       ...p,
-      applications: (p.applications || []).map((a: any) => ({
+      applications: (appsByProject[p.id] || []).map((a: any) => ({
         ...a,
-        freelancer_name:  profileMap[a.freelancer_id]?.name        ?? 'Pengguna',
-        trust_score:      profileMap[a.freelancer_id]?.trust_score  ?? null,
-        headline:         profileMap[a.freelancer_id]?.headline     ?? null,
-        cover_letter:     a.cover_letter   ?? null,
-        proposed_budget:  a.proposed_budget ?? null,
+        freelancer_name: profileMap[a.freelancer_id]?.name       ?? 'Pengguna',
+        trust_score:     profileMap[a.freelancer_id]?.trust_score ?? null,
+        headline:        profileMap[a.freelancer_id]?.headline    ?? null,
+        cover_letter:    a.cover_letter    ?? null,
+        proposed_budget: a.proposed_budget ?? null,
       })),
     })))
 

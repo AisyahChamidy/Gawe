@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useParams } from 'next/navigation'
+import Navbar from '@/components/Navbar'
+import NavbarKlien from '@/components/NavbarKlien'
 
 type Project = {
   id: string; title: string; description: string; category: string
@@ -39,6 +41,7 @@ export default function ProyekDetailPublikPage() {
   const [notFound, setNotFound]       = useState(false)
 
   const [user, setUser]               = useState<any>(null)
+  const [userRole, setUserRole]       = useState<string | null>(null)
   const [sudahDilamar, setSudahDilamar] = useState(false)
   const [applying, setApplying]       = useState(false)
   const [applied, setApplied]         = useState(false)
@@ -59,6 +62,10 @@ export default function ProyekDetailPublikPage() {
         supabase.from('applications').select('id', { count: 'exact', head: true }).eq('project_id', projectId),
       ])
       setClientName(profile?.full_name || 'Klien')
+      if (u) {
+        const { data: roleData } = await supabase.from('profiles').select('role').eq('id', u.id).single()
+        setUserRole(roleData?.role || 'freelancer')
+      }
       setPelamarCount(count || 0)
 
       if (u) {
@@ -100,21 +107,27 @@ export default function ProyekDetailPublikPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
-      {/* Navbar landing */}
-      <div style={{ backgroundColor: 'rgba(10,14,26,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
-        <a href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '20px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
-        </a>
-        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-          <a href="/#cara-kerja" style={navLink}>Cara Kerja</a>
-          <a href="/proyek" style={{ ...navLink, color: 'white', fontWeight: '600' }}>Proyek</a>
-          <a href="/auth/masuk" style={navLink}>Masuk</a>
-          <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
-          <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: '8px' }}>
-            Daftar Gratis
+      {/* Navbar: kondisional berdasarkan status login dan role */}
+      {user && userRole === 'client' ? (
+        <NavbarKlien />
+      ) : user ? (
+        <Navbar />
+      ) : (
+        <div style={{ backgroundColor: 'rgba(10,14,26,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
+          <a href="/" style={{ textDecoration: 'none' }}>
+            <span style={{ fontSize: '20px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
           </a>
+          <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+            <a href="/#cara-kerja" style={navLink}>Cara Kerja</a>
+            <a href="/proyek" style={{ ...navLink, color: 'white', fontWeight: '600' }}>Proyek</a>
+            <a href="/auth/masuk" style={navLink}>Masuk</a>
+            <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
+            <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: '8px' }}>
+              Daftar Gratis
+            </a>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Breadcrumb */}
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px clamp(16px, 4vw, 32px) 0' }}>
