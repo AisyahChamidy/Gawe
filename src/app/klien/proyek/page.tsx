@@ -13,7 +13,6 @@ type Application = {
   trust_score: number | null
   headline: string | null
   cover_letter: string | null
-  proposed_budget: number | null
 }
 type Project = { id: string; title: string; category: string; budget_min: number; budget_max: number; status: string; applications: Application[] }
 type ReviewedSet = Set<string>
@@ -79,7 +78,7 @@ export default function KlienProyekPage() {
     if (projectIds.length > 0) {
       const { data: appsData } = await supabase
         .from('applications')
-        .select('id, status, created_at, freelancer_id, project_id, cover_letter, proposed_budget')
+        .select('id, status, created_at, freelancer_id, project_id, cover_letter')
         .in('project_id', projectIds)
       ;(appsData || []).forEach((a: any) => {
         if (!appsByProject[a.project_id]) appsByProject[a.project_id] = []
@@ -115,7 +114,6 @@ export default function KlienProyekPage() {
         trust_score:     profileMap[a.freelancer_id]?.trust_score ?? null,
         headline:        profileMap[a.freelancer_id]?.headline    ?? null,
         cover_letter:    a.cover_letter    ?? null,
-        proposed_budget: a.proposed_budget ?? null,
       })),
     })))
 
@@ -284,16 +282,6 @@ export default function KlienProyekPage() {
                                     </div>
                                   )}
                                 </div>
-
-                                {/* Row 4: proposed budget */}
-                                {app.proposed_budget != null && (
-                                  <div style={{ marginBottom: '12px' }}>
-                                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>Penawaran: </span>
-                                    <span style={{ fontSize: '15px', fontWeight: 600, color: '#22D3EE' }}>
-                                      {formatRupiah(app.proposed_budget)}
-                                    </span>
-                                  </div>
-                                )}
 
                                 {/* Bottom: action buttons */}
                                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
