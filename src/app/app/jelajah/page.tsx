@@ -4,10 +4,29 @@ import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import { Clock, Users } from 'lucide-react'
+import { calculateMatchScore } from '@/utils/matchScore'
 
 const KATEGORI = ['Semua','Desain Grafis','Web Development','Social Media','Penulisan Konten','Video Editing','UI/UX Design','Terjemahan','Data Entry','Lainnya']
 type Project = { id: string; title: string; description: string; category: string; budget_min: number; budget_max: number; estimated_days: number; skills_required: string[]; created_at: string }
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
+
+function MatchBadge({ score }: { score: number }) {
+  if (score >= 85) return (
+    <span style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: '#22D3EE', borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+      ✨ {score}% Cocok
+    </span>
+  )
+  if (score >= 70) return (
+    <span style={{ background: 'rgba(79,110,247,0.15)', border: '1px solid rgba(79,110,247,0.3)', color: '#4F6EF7', borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+      {score}% Cocok
+    </span>
+  )
+  return (
+    <span style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)', borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+      {score}% Cocok
+    </span>
+  )
+}
 
 export default function JelajahPage() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -18,9 +37,11 @@ export default function JelajahPage() {
   const [search, setSearch] = useState('')
   const [kategori, setKategori] = useState('Semua')
   const [budgetMax, setBudgetMax] = useState(5000000)
-  const [sortBy, setSortBy] = useState('terbaru')
+  const [sortBy, setSortBy] = useState('paling-cocok')
   const [pelamarCount, setPelamarCount] = useState<Record<string, number>>({})
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [freelancerSkills, setFreelancerSkills] = useState<string[]>([])
+  const [freelancerTrustScore, setFreelancerTrustScore] = useState(10)
 
   const [showModal, setShowModal] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
@@ -52,8 +73,15 @@ export default function JelajahPage() {
 
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        const { data: apps } = await supabase.from('applications').select('project_id').eq('freelancer_id', user.id)
+        const [{ data: apps }, { data: prof }] = await Promise.all([
+          supabase.from('applications').select('project_id').eq('freelancer_id', user.id),
+          supabase.from('profiles').select('skills, trust_score').eq('id', user.id).single(),
+        ])
         setAppliedIds((apps || []).map((a: any) => a.project_id))
+        if (prof) {
+          setFreelancerSkills(prof.skills || [])
+          setFreelancerTrustScore(prof.trust_score || 10)
+        }
       }
       setLoading(false)
     }
@@ -65,12 +93,18 @@ export default function JelajahPage() {
     if (kategori !== 'Semua') r = r.filter(p => p.category === kategori)
     if (search.trim()) r = r.filter(p => p.title.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase()))
     r = r.filter(p => p.budget_max <= budgetMax)
-    if (sortBy === 'harga-tertinggi') r = [...r].sort((a, b) => b.budget_max - a.budget_max)
+    if (sortBy === 'paling-cocok') {
+      r = [...r].sort((a, b) => {
+        const sa = calculateMatchScore({ freelancerSkills, trustScore: freelancerTrustScore, project: { skillsRequired: a.skills_required || [], category: a.category, budgetMin: a.budget_min, budgetMax: a.budget_max } })
+        const sb = calculateMatchScore({ freelancerSkills, trustScore: freelancerTrustScore, project: { skillsRequired: b.skills_required || [], category: b.category, budgetMin: b.budget_min, budgetMax: b.budget_max } })
+        return sb - sa
+      })
+    } else if (sortBy === 'harga-tertinggi') r = [...r].sort((a, b) => b.budget_max - a.budget_max)
     else if (sortBy === 'harga-terendah') r = [...r].sort((a, b) => a.budget_min - b.budget_min)
     else if (sortBy === 'deadline') r = [...r].sort((a, b) => a.estimated_days - b.estimated_days)
     else r = [...r].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     setFiltered(r)
-  }, [search, kategori, budgetMax, sortBy, projects])
+  }, [search, kategori, budgetMax, sortBy, projects, freelancerSkills, freelancerTrustScore])
 
   function openModal(project: Project) {
     setSelectedProject(project)
@@ -176,6 +210,7 @@ export default function JelajahPage() {
             </select>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
               style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', color: 'white', padding: '8px 12px', fontSize: '14px', cursor: 'pointer' }}>
+              <option value="paling-cocok">Paling Cocok</option>
               <option value="terbaru">Terbaru</option>
               <option value="harga-tertinggi">Harga Tertinggi</option>
               <option value="harga-terendah">Harga Terendah</option>
@@ -206,6 +241,16 @@ export default function JelajahPage() {
               const visibleSkills = skills.slice(0, 3)
               const extraSkills = skills.length - 3
               const pelamar = pelamarCount[project.id] || 0
+              const matchScore = calculateMatchScore({
+                freelancerSkills,
+                trustScore: freelancerTrustScore,
+                project: {
+                  skillsRequired: project.skills_required || [],
+                  category: project.category,
+                  budgetMin: project.budget_min,
+                  budgetMax: project.budget_max,
+                },
+              })
 
               return (
                 <div
@@ -222,14 +267,17 @@ export default function JelajahPage() {
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  {/* Top row: category badge + budget */}
+                  {/* Top row: category + match badge + budget */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <span style={{ background: 'rgba(79,110,247,0.12)', color: '#4F6EF7', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500 }}>
                       {project.category}
                     </span>
-                    <span style={{ fontSize: '15px', fontWeight: 700, color: '#22D3EE' }}>
-                      {fmt(project.budget_min)} – {fmt(project.budget_max)}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <MatchBadge score={matchScore} />
+                      <span style={{ fontSize: '15px', fontWeight: 700, color: '#22D3EE' }}>
+                        {fmt(project.budget_min)} – {fmt(project.budget_max)}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Title */}
@@ -245,11 +293,22 @@ export default function JelajahPage() {
                   {/* Skill tags */}
                   {visibleSkills.length > 0 && (
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                      {visibleSkills.map(skill => (
-                        <span key={skill} style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px' }}>
-                          {skill}
-                        </span>
-                      ))}
+                      {visibleSkills.map(skill => {
+                        const matched = freelancerSkills.some(fs =>
+                          fs.toLowerCase().includes(skill.toLowerCase()) ||
+                          skill.toLowerCase().includes(fs.toLowerCase())
+                        )
+                        return (
+                          <span key={skill} style={{
+                            background: matched ? 'rgba(34,211,238,0.1)' : 'rgba(255,255,255,0.06)',
+                            color: matched ? '#22D3EE' : 'rgba(255,255,255,0.6)',
+                            border: matched ? '1px solid rgba(34,211,238,0.25)' : 'none',
+                            borderRadius: '6px', padding: '3px 8px', fontSize: '11px',
+                          }}>
+                            {skill}
+                          </span>
+                        )
+                      })}
                       {extraSkills > 0 && (
                         <span style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px' }}>
                           +{extraSkills} lagi
@@ -274,12 +333,8 @@ export default function JelajahPage() {
                         background: sudahDilamar ? 'transparent' : '#4F6EF7',
                         color: sudahDilamar ? 'rgba(255,255,255,0.5)' : 'white',
                         border: sudahDilamar ? '1px solid rgba(255,255,255,0.2)' : 'none',
-                        borderRadius: '8px',
-                        padding: '8px 18px',
-                        fontSize: '13px',
-                        fontWeight: 500,
-                        cursor: sudahDilamar ? 'default' : 'pointer',
-                        flexShrink: 0,
+                        borderRadius: '8px', padding: '8px 18px', fontSize: '13px',
+                        fontWeight: 500, cursor: sudahDilamar ? 'default' : 'pointer', flexShrink: 0,
                       }}>
                       {sedangMelamar ? 'Mengirim...' : sudahDilamar ? '✓ Sudah Dilamar' : 'Lamar Proyek'}
                     </button>
