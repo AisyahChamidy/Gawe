@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import NavbarKlien from '@/components/NavbarKlien'
+import { Search, X } from 'lucide-react'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
 
 type Project = { id: string; title: string; description: string; category: string; budget_min: number; budget_max: number; estimated_days: number; skills_required: string[]; created_at: string }
 
@@ -38,31 +42,34 @@ export default function ProyekPublikPage() {
     load()
   }, [])
 
-
   const filtered = projects.filter(p =>
     (!search || p.title.toLowerCase().includes(search.toLowerCase()) || p.description.toLowerCase().includes(search.toLowerCase())) &&
     (!kategori || p.category === kategori)
   )
 
-  const navLink: React.CSSProperties = { color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }
-
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
+      <style>{`
+        .pill-scroll-pub { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+        .pill-scroll-pub::-webkit-scrollbar { display: none; }
+        input::placeholder { color: #AFA9EC; }
+      `}</style>
+
       {loadingAuth ? null : userRole === 'client' ? (
         <NavbarKlien />
       ) : userRole ? (
         <Navbar />
       ) : (
-        <div style={{ backgroundColor: 'rgba(10,14,26,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ backgroundColor: C.bgWhite, borderBottom: `1px solid ${C.border}`, padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
           <a href="/" style={{ textDecoration: 'none' }}>
-            <span style={{ fontSize: '20px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
+            <span style={{ fontSize: '22px', fontWeight: 800, color: C.textDark, fontFamily: theme.fonts.headline }}>Gawe</span>
           </a>
           <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
-            <a href="/#cara-kerja" style={navLink}>Cara Kerja</a>
-            <a href="/proyek" style={{ ...navLink, color: 'white', fontWeight: '600' }}>Proyek</a>
-            <a href="/auth/masuk" style={navLink}>Masuk</a>
-            <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
-            <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: '8px' }}>
+            <a href="/#cara-kerja" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>Cara Kerja</a>
+            <a href="/proyek" style={{ color: C.primary, textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>Proyek</a>
+            <a href="/auth/masuk" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>Masuk</a>
+            <div style={{ width: 1, height: 20, backgroundColor: C.border }} />
+            <a href="/auth/daftar" style={{ backgroundColor: C.primary, color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: 600, padding: '8px 18px', borderRadius: R.sm }}>
               Daftar Gratis
             </a>
           </div>
@@ -70,58 +77,94 @@ export default function ProyekPublikPage() {
       )}
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 32px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px' }}>Proyek Tersedia</h1>
-        <p style={{ color: '#8892a4', marginBottom: '28px' }}>
+        <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '8px', color: C.textDark, fontFamily: theme.fonts.headline }}>Proyek Tersedia</h1>
+        <p style={{ color: C.textMuted, marginBottom: '28px' }}>
           {loading ? 'Memuat...' : `${filtered.length} proyek menunggu freelancer seperti kamu`}
         </p>
 
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '28px', flexWrap: 'wrap' }}>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari proyek..."
-            style={{ flex: 1, minWidth: 200, padding: '10px 14px', backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white', fontSize: '14px', outline: 'none' }} />
-          <select value={kategori} onChange={e => setKategori(e.target.value)}
-            style={{ padding: '10px 14px', backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '8px', color: kategori ? 'white' : '#8892a4', fontSize: '14px', outline: 'none' }}>
-            <option value="">Semua kategori</option>
-            {KATEGORI.map(k => <option key={k} value={k}>{k}</option>)}
-          </select>
+        {/* Filter panel */}
+        <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '16px 20px', marginBottom: '28px', boxShadow: theme.shadow.card }}>
+
+          {/* Search bar */}
+          <div style={{ position: 'relative', marginBottom: '16px' }}>
+            <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+              <Search size={16} strokeWidth={1.5} color={C.textTertiary} />
+            </div>
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Cari proyek..."
+              style={{ width: '100%', padding: '9px 12px 9px 38px', backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, borderRadius: R.sm, color: C.textDark, fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+
+          {/* Category pills */}
+          <div style={{ fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: C.textMuted, fontWeight: 600, marginBottom: '8px' }}>
+            Kategori
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div className="pill-scroll-pub">
+              {['', ...KATEGORI].map(k => {
+                const isActive = kategori === k
+                return (
+                  <button key={k} onClick={() => setKategori(k)}
+                    style={{
+                      flexShrink: 0, whiteSpace: 'nowrap',
+                      padding: '5px 14px', borderRadius: R.pill, fontSize: '12px',
+                      fontWeight: isActive ? 600 : 500, cursor: 'pointer',
+                      backgroundColor: isActive ? C.primary : C.bgLavenderSoft,
+                      color: isActive ? 'white' : C.textMuted,
+                      border: isActive ? 'none' : `1px solid ${C.border}`,
+                    }}>
+                    {k || 'Semua'}
+                  </button>
+                )
+              })}
+            </div>
+            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 48, background: `linear-gradient(to right, transparent, ${C.bgWhite})`, pointerEvents: 'none' }} />
+          </div>
+
+          {/* Reset */}
           {(search || kategori) && (
             <button onClick={() => { setSearch(''); setKategori('') }}
-              style={{ padding: '10px 14px', backgroundColor: 'transparent', border: '1px solid #1e2d4a', borderRadius: '8px', color: '#8892a4', cursor: 'pointer', fontSize: '14px' }}>
-              Reset
+              style={{ marginTop: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 10px', backgroundColor: 'transparent', border: `1px solid ${C.border}`, borderRadius: R.sm, color: C.textMuted, cursor: 'pointer', fontSize: '12px' }}>
+              <X size={12} strokeWidth={1.5} />
+              Reset filter
             </button>
           )}
         </div>
 
+        {/* Project list */}
         {loading ? (
-          <div style={{ textAlign: 'center', color: '#8892a4', padding: '80px' }}>Memuat proyek...</div>
+          <div style={{ textAlign: 'center', color: C.textMuted, padding: '80px' }}>Memuat proyek...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#8892a4', padding: '80px', backgroundColor: '#131929', borderRadius: '12px', border: '1px solid #1e2d4a' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
-            <p>Tidak ada proyek yang cocok.</p>
+          <div style={{ textAlign: 'center', color: C.textMuted, padding: '80px', backgroundColor: C.bgLavenderSoft, borderRadius: R.md, border: `1px solid ${C.border}` }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px', opacity: 0.3 }}>
+              <Search size={40} strokeWidth={1} color={C.textDark} />
+            </div>
+            <p style={{ margin: 0 }}>Tidak ada proyek yang cocok.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {filtered.map(project => (
-              <div key={project.id} style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '24px' }}>
+              <div key={project.id} style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '24px', boxShadow: theme.shadow.card }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <span style={{ backgroundColor: '#1a2340', color: '#4F6EF7', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'inline-block' }}>{project.category}</span>
+                    <span style={{ backgroundColor: C.primaryTint, color: C.primary, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'inline-block' }}>{project.category}</span>
                     <a href={`/proyek/${project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                      <h2 style={{ fontSize: '18px', margin: '8px 0 0', fontWeight: 'bold', cursor: 'pointer' }}>{project.title}</h2>
+                      <h2 style={{ fontSize: '18px', margin: '8px 0 0', fontWeight: 700, cursor: 'pointer', color: C.textDark }}>{project.title}</h2>
                     </a>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
-                    <div style={{ color: '#22D3EE', fontWeight: 'bold', fontSize: '16px' }}>{fmt(project.budget_min)} – {fmt(project.budget_max)}</div>
-                    <div style={{ color: '#8892a4', fontSize: '12px', marginTop: '4px' }}>{project.estimated_days} hari</div>
+                    <div style={{ color: C.primary, fontWeight: 700, fontSize: '16px', fontFamily: theme.fonts.mono }}>{fmt(project.budget_min)} – {fmt(project.budget_max)}</div>
+                    <div style={{ color: C.textMuted, fontSize: '12px', marginTop: '4px' }}>{project.estimated_days} hari</div>
                   </div>
                 </div>
-                <p style={{ color: '#8892a4', fontSize: '14px', lineHeight: '1.6', marginBottom: '16px' }}>{project.description}</p>
+                <p style={{ color: C.textMuted, fontSize: '14px', lineHeight: '1.6', marginBottom: '16px' }}>{project.description}</p>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
                   {(project.skills_required || []).map(skill => (
-                    <span key={skill} style={{ backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', color: '#8892a4', fontSize: '12px', padding: '4px 10px', borderRadius: '6px' }}>{skill}</span>
+                    <span key={skill} style={{ backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, color: C.textMuted, fontSize: '12px', padding: '4px 10px', borderRadius: R.sm }}>{skill}</span>
                   ))}
                 </div>
                 <a href={`/proyek/${project.id}`}
-                  style={{ display: 'inline-block', backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', fontWeight: 'bold' }}>
+                  style={{ display: 'inline-block', backgroundColor: C.primary, color: 'white', textDecoration: 'none', borderRadius: R.sm, padding: '10px 20px', fontSize: '14px', fontWeight: 700 }}>
                   Lihat & Lamar
                 </a>
               </div>
@@ -129,14 +172,20 @@ export default function ProyekPublikPage() {
           </div>
         )}
 
-        <div style={{ marginTop: '48px', backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '16px', padding: '40px', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '8px' }}>Mau lamar proyek ini?</h2>
-          <p style={{ color: '#8892a4', marginBottom: '24px' }}>Daftar gratis dan mulai bangun portofoliomu di Gawe.</p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-            <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', padding: '12px 28px', borderRadius: '10px', fontWeight: 'bold', fontSize: '15px' }}>Daftar Gratis</a>
-            <a href="/auth/masuk" style={{ backgroundColor: 'transparent', color: 'white', textDecoration: 'none', padding: '12px 28px', borderRadius: '10px', fontWeight: 'bold', fontSize: '15px', border: '1px solid rgba(255,255,255,0.15)' }}>Sudah punya akun</a>
+        {/* CTA Bottom */}
+        <div style={{ marginTop: '48px', position: 'relative', overflow: 'hidden', borderRadius: R.lg, padding: '48px 40px', textAlign: 'center' }}>
+          <div style={{ position: 'absolute', inset: 0, background: C.meshBase }} />
+          <div style={{ position: 'absolute', top: '-20%', right: '-20%', bottom: '-20%', left: '-20%', background: theme.gradients.darkMesh, filter: 'blur(40px)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '8px', color: 'white', fontFamily: theme.fonts.headline }}>Mau lamar proyek ini?</h2>
+            <p style={{ color: 'rgba(255,255,255,0.65)', marginBottom: '24px', fontSize: '15px' }}>Daftar gratis dan mulai bangun portofoliomu di Gawe.</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="/auth/daftar" style={{ backgroundColor: C.primary, color: 'white', textDecoration: 'none', padding: '12px 28px', borderRadius: R.sm, fontWeight: 700, fontSize: '15px' }}>Daftar Gratis</a>
+              <a href="/auth/masuk" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', textDecoration: 'none', padding: '12px 28px', borderRadius: R.sm, fontWeight: 600, fontSize: '15px', border: '1px solid rgba(255,255,255,0.2)' }}>Sudah punya akun</a>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   )

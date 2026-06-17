@@ -3,7 +3,13 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
-import { TrendingUp, AlertTriangle, AlertCircle, Sparkles } from 'lucide-react'
+import { TrendingUp, AlertTriangle, AlertCircle, Sparkles, Calendar, CheckCircle, Clock, Wallet, ArrowUp, ArrowDown } from 'lucide-react'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
+
+const STATUS_RED   = '#EF4444'
+const STATUS_AMBER = '#F59E0B'
 
 type Transaction = {
   id: string
@@ -104,55 +110,62 @@ export default function KeuanganPage() {
   })()
 
   const statusCashflow = incomeTransactions.length === 0
-    ? { label: 'Mulai', color: '#4F6EF7', bg: '#0f1829', desc: 'Selesaikan proyek pertamamu untuk mulai melacak cashflow.', Icon: Sparkles }
+    ? { label: 'Mulai',   color: C.primary,    bg: C.primaryTint,       desc: 'Selesaikan proyek pertamamu untuk mulai melacak cashflow.', Icon: Sparkles       }
     : incomeLast30.length === 0
-    ? { label: 'Kritis', color: '#EF4444', bg: '#2d1515', desc: 'Tidak ada pemasukan 30 hari terakhir. Yuk lamar proyek baru.', Icon: AlertCircle }
+    ? { label: 'Kritis',  color: STATUS_RED,   bg: STATUS_RED + '18',   desc: 'Tidak ada pemasukan 30 hari terakhir. Yuk lamar proyek baru.', Icon: AlertCircle  }
     : incomeLast14.length === 0 || bulanIni < avg3Months
-    ? { label: 'Waspada', color: '#F59E0B', bg: '#2a2a00', desc: 'Belum ada pemasukan baru belakangan ini. Cek lamaran aktifmu.', Icon: AlertTriangle }
-    : { label: 'Aman', color: '#10B981', bg: '#152d1e', desc: 'Ada pemasukan bulan ini. Terus pertahankan!', Icon: TrendingUp }
+    ? { label: 'Waspada', color: STATUS_AMBER, bg: STATUS_AMBER + '18', desc: 'Belum ada pemasukan baru belakangan ini. Cek lamaran aktifmu.', Icon: AlertTriangle }
+    : { label: 'Aman',    color: C.success,    bg: C.successTint,       desc: 'Ada pemasukan bulan ini. Terus pertahankan!', Icon: TrendingUp                }
 
   const CATEGORIES = ['Project', 'Desain Grafis', 'Web Development', 'Social Media', 'UI/UX Design', 'Penulisan', 'Lainnya']
 
-  const inp = { width: '100%', padding: '10px 14px', backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box' as const }
+  const inp = { width: '100%', padding: '10px 14px', backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.sm, color: C.textDark, fontSize: '14px', outline: 'none', boxSizing: 'border-box' as const }
+
+  const statCards = [
+    { label: 'Bulan Ini',      value: fmt(bulanIni),       color: C.primary,    iconBg: C.primaryTint,       Icon: Calendar    },
+    { label: 'Sudah Cair',     value: fmt(totalCompleted), color: C.success,    iconBg: C.successTint,       Icon: CheckCircle },
+    { label: 'Menunggu Cair',  value: fmt(totalPending),   color: STATUS_AMBER, iconBg: STATUS_AMBER + '18', Icon: Clock       },
+    { label: 'Total Lifetime', value: fmt(totalLifetime),  color: C.primary,    iconBg: C.primaryTint,       Icon: TrendingUp  },
+  ]
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
       <Navbar />
       <div style={{ padding: '40px 32px', maxWidth: '1000px', margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
           <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '4px' }}>Keuangan</h1>
-            <p style={{ color: '#8892a4', fontSize: '14px' }}>Pantau pemasukan dan arus kasmu</p>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '4px', color: C.textDark, fontFamily: theme.fonts.headline }}>Keuangan</h1>
+            <p style={{ color: C.textMuted, fontSize: '14px', margin: 0 }}>Pantau pemasukan dan arus kasmu</p>
           </div>
           <button onClick={() => setShowForm(!showForm)} style={{
-            padding: '10px 20px', backgroundColor: '#4F6EF7', color: 'white',
-            border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer'
+            padding: '10px 20px', backgroundColor: C.primary, color: 'white',
+            border: 'none', borderRadius: R.sm, fontSize: '14px', fontWeight: 600, cursor: 'pointer'
           }}>+ Catat Pemasukan</button>
         </div>
 
         {/* Form tambah transaksi */}
         {showForm && (
-          <div style={{ backgroundColor: '#131929', border: '1px solid #4F6EF7', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '16px' }}>Catat Transaksi Baru</h3>
+          <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.primary}`, borderRadius: R.md, padding: '24px', marginBottom: '24px', boxShadow: theme.shadow.card }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px', color: C.textDark }}>Catat Transaksi Baru</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
               <div>
-                <label style={{ fontSize: '12px', color: '#8892a4', display: 'block', marginBottom: '6px' }}>Deskripsi</label>
+                <label style={{ fontSize: '12px', color: C.textMuted, display: 'block', marginBottom: '6px' }}>Deskripsi</label>
                 <input style={inp} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="cth: Desain logo klien A" />
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#8892a4', display: 'block', marginBottom: '6px' }}>Jumlah (Rp)</label>
+                <label style={{ fontSize: '12px', color: C.textMuted, display: 'block', marginBottom: '6px' }}>Jumlah (Rp)</label>
                 <input style={inp} type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} placeholder="500000" />
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#8892a4', display: 'block', marginBottom: '6px' }}>Kategori</label>
+                <label style={{ fontSize: '12px', color: C.textMuted, display: 'block', marginBottom: '6px' }}>Kategori</label>
                 <select style={{ ...inp }} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
                   {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: '12px', color: '#8892a4', display: 'block', marginBottom: '6px' }}>Tipe</label>
+                <label style={{ fontSize: '12px', color: C.textMuted, display: 'block', marginBottom: '6px' }}>Tipe</label>
                 <select style={{ ...inp }} value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
                   <option value="income">Pemasukan</option>
                   <option value="expense">Pengeluaran</option>
@@ -160,10 +173,10 @@ export default function KeuanganPage() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={handleSave} disabled={saving} style={{ padding: '10px 20px', backgroundColor: '#4F6EF7', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
+              <button onClick={handleSave} disabled={saving} style={{ padding: '10px 20px', backgroundColor: C.primary, color: 'white', border: 'none', borderRadius: R.sm, fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
                 {saving ? 'Menyimpan...' : 'Simpan'}
               </button>
-              <button onClick={() => setShowForm(false)} style={{ padding: '10px 20px', backgroundColor: 'transparent', color: '#8892a4', border: '1px solid #1e2d4a', borderRadius: '8px', fontSize: '14px', cursor: 'pointer' }}>
+              <button onClick={() => setShowForm(false)} style={{ padding: '10px 20px', backgroundColor: 'transparent', color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: R.sm, fontSize: '14px', cursor: 'pointer' }}>
                 Batal
               </button>
             </div>
@@ -172,40 +185,37 @@ export default function KeuanganPage() {
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
-          {[
-            { label: 'Bulan Ini', value: fmt(bulanIni), color: '#4F6EF7', icon: '📅' },
-            { label: 'Sudah Cair', value: fmt(totalCompleted), color: '#10B981', icon: '✅' },
-            { label: 'Menunggu Cair', value: fmt(totalPending), color: '#FBBF24', icon: '⏳' },
-            { label: 'Total Lifetime', value: fmt(totalLifetime), color: '#22D3EE', icon: '💰' },
-          ].map(s => (
-            <div key={s.label} style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px' }}>
-              <div style={{ fontSize: '20px', marginBottom: '8px' }}>{s.icon}</div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: s.color, marginBottom: '4px' }}>{s.value}</div>
-              <div style={{ color: '#8892a4', fontSize: '12px' }}>{s.label}</div>
+          {statCards.map(s => (
+            <div key={s.label} style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px', boxShadow: theme.shadow.card }}>
+              <div style={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: s.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                <s.Icon size={20} strokeWidth={1.5} color={s.color} />
+              </div>
+              <div style={{ fontSize: '18px', fontWeight: 800, color: s.color, marginBottom: '4px', fontFamily: theme.fonts.mono }}>{s.value}</div>
+              <div style={{ color: C.textMuted, fontSize: '12px' }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '24px' }}>
           {/* Chart */}
-          <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '24px' }}>
+          <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '24px', boxShadow: theme.shadow.card }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '16px', fontWeight: 'bold' }}>Pemasukan 6 Bulan Terakhir</h2>
+              <h2 style={{ fontSize: '16px', fontWeight: 700, color: C.textDark, margin: 0 }}>Pemasukan 6 Bulan Terakhir</h2>
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', height: '160px' }}>
               {chartData.map((d, i) => (
                 <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', height: '100%', justifyContent: 'flex-end' }}>
-                  <div style={{ fontSize: '10px', color: '#8892a4' }}>
+                  <div style={{ fontSize: '10px', color: C.textMuted }}>
                     {d.total > 0 ? (d.total >= 1000000 ? (d.total/1000000).toFixed(1)+'jt' : (d.total/1000)+'rb') : ''}
                   </div>
                   <div style={{
                     width: '100%', borderRadius: '6px 6px 0 0',
                     height: `${Math.max((d.total / maxChart) * 130, d.total > 0 ? 8 : 2)}px`,
-                    backgroundColor: i === 5 ? '#4F6EF7' : '#1e2d4a',
+                    backgroundColor: i === 5 ? C.primary : C.bgLavenderStrong,
                     transition: 'height 0.3s ease',
                     position: 'relative',
                   }} />
-                  <div style={{ fontSize: '11px', color: '#8892a4' }}>{d.label}</div>
+                  <div style={{ fontSize: '11px', color: C.textMuted }}>{d.label}</div>
                 </div>
               ))}
             </div>
@@ -213,52 +223,57 @@ export default function KeuanganPage() {
 
           {/* Status cashflow */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px' }}>
-              <h3 style={{ fontSize: '14px', color: '#8892a4', marginBottom: '12px' }}>Status Cashflow</h3>
-              <div style={{ backgroundColor: statusCashflow.bg, border: `1px solid ${statusCashflow.color}`, borderRadius: '8px', padding: '16px' }}>
+            <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px', boxShadow: theme.shadow.card }}>
+              <h3 style={{ fontSize: '14px', color: C.textMuted, margin: '0 0 12px' }}>Status Cashflow</h3>
+              <div style={{ backgroundColor: statusCashflow.bg, border: `1px solid ${statusCashflow.color}33`, borderRadius: R.sm, padding: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
                   <statusCashflow.Icon size={20} color={statusCashflow.color} strokeWidth={1.5} />
-                  <div style={{ fontSize: '22px', fontWeight: 'bold', color: statusCashflow.color }}>{statusCashflow.label}</div>
+                  <div style={{ fontSize: '22px', fontWeight: 800, color: statusCashflow.color, fontFamily: theme.fonts.mono }}>{statusCashflow.label}</div>
                 </div>
-                <div style={{ fontSize: '13px', color: '#8892a4', textAlign: 'center' }}>{statusCashflow.desc}</div>
+                <div style={{ fontSize: '13px', color: C.textMuted, textAlign: 'center' }}>{statusCashflow.desc}</div>
               </div>
             </div>
-            <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px' }}>
-              <h3 style={{ fontSize: '14px', color: '#8892a4', marginBottom: '12px' }}>Proyeksi Bulan Depan</h3>
-              <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#8B5CF6' }}>{fmt(totalPending)}</div>
-              <div style={{ fontSize: '12px', color: '#8892a4', marginTop: '4px' }}>dari {pending.length} proyek pending</div>
+            <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px', boxShadow: theme.shadow.card }}>
+              <h3 style={{ fontSize: '14px', color: C.textMuted, margin: '0 0 12px' }}>Proyeksi Bulan Depan</h3>
+              <div style={{ fontSize: '22px', fontWeight: 800, color: C.primary, fontFamily: theme.fonts.mono }}>{fmt(totalPending)}</div>
+              <div style={{ fontSize: '12px', color: C.textMuted, marginTop: '4px' }}>dari {pending.length} proyek pending</div>
             </div>
           </div>
         </div>
 
         {/* Riwayat transaksi */}
-        <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', overflow: 'hidden' }}>
-          <div style={{ padding: '20px 24px', borderBottom: '1px solid #1e2d4a' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: 'bold' }}>Riwayat Transaksi</h2>
+        <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, overflow: 'hidden', boxShadow: theme.shadow.card }}>
+          <div style={{ padding: '20px 24px', borderBottom: `1px solid ${C.border}` }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, color: C.textDark, margin: 0 }}>Riwayat Transaksi</h2>
           </div>
           {loading ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#8892a4' }}>Memuat...</div>
+            <div style={{ padding: '40px', textAlign: 'center', color: C.textMuted }}>Memuat...</div>
           ) : transactions.length === 0 ? (
-            <div style={{ padding: '48px', textAlign: 'center', color: '#8892a4' }}>
-              <div style={{ fontSize: '40px', marginBottom: '12px' }}>💸</div>
+            <div style={{ padding: '48px', textAlign: 'center', color: C.textMuted }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px', opacity: 0.3 }}>
+                <Wallet size={40} strokeWidth={1} color={C.textDark} />
+              </div>
               <p>Belum ada transaksi. Catat pemasukan pertamamu!</p>
             </div>
           ) : transactions.map(t => (
-            <div key={t.id} style={{ padding: '16px 24px', borderBottom: '1px solid #0d1526', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={t.id} style={{ padding: '16px 24px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: 36, height: 36, borderRadius: '8px', backgroundColor: t.type === 'income' ? '#152d1e' : '#2d1515', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>
-                  {t.type === 'income' ? '↑' : '↓'}
+                <div style={{ width: 36, height: 36, borderRadius: R.sm, backgroundColor: t.type === 'income' ? C.successTint : STATUS_RED + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {t.type === 'income'
+                    ? <ArrowUp size={16} strokeWidth={2} color={C.success} />
+                    : <ArrowDown size={16} strokeWidth={2} color={STATUS_RED} />
+                  }
                 </div>
                 <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{t.description}</div>
-                  <div style={{ color: '#8892a4', fontSize: '12px' }}>{t.category} · {new Date(t.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                  <div style={{ fontWeight: 600, fontSize: '14px', color: C.textDark }}>{t.description}</div>
+                  <div style={{ color: C.textMuted, fontSize: '12px' }}>{t.category} · {new Date(t.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontWeight: 'bold', fontSize: '15px', color: t.type === 'income' ? '#10B981' : '#EF4444' }}>
+                <div style={{ fontWeight: 700, fontSize: '15px', color: t.type === 'income' ? C.success : STATUS_RED, fontFamily: theme.fonts.mono }}>
                   {t.type === 'income' ? '+' : '-'}{fmt(t.amount)}
                 </div>
-                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', backgroundColor: t.status === 'completed' ? '#152d1e' : '#2a2a00', color: t.status === 'completed' ? '#10B981' : '#FBBF24' }}>
+                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', backgroundColor: t.status === 'completed' ? C.successTint : STATUS_AMBER + '18', color: t.status === 'completed' ? C.success : STATUS_AMBER }}>
                   {t.status === 'completed' ? 'Sudah cair' : 'Menunggu'}
                 </span>
               </div>

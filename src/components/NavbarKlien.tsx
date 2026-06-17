@@ -2,7 +2,10 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
-import { Bell } from 'lucide-react'
+import { Bell, Building2 } from 'lucide-react'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
 
 export default function NavbarKlien() {
   const [firstName, setFirstName] = useState('')
@@ -66,8 +69,8 @@ export default function NavbarKlien() {
 
   return (
     <div style={{
-      backgroundColor: '#0F1628',
-      borderBottom: '1px solid rgba(255,255,255,0.08)',
+      backgroundColor: C.bgWhite,
+      borderBottom: `0.5px solid ${C.border}`,
       padding: '0 clamp(16px, 4vw, 32px)',
       display: 'flex',
       justifyContent: 'space-between',
@@ -83,43 +86,49 @@ export default function NavbarKlien() {
           .nav-mode-kl { display: none !important; }
         }
       `}</style>
+
+      {/* Logo + mode badge */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <a href="/klien/dasbor" style={{ textDecoration: 'none' }}>
-          <span style={{ fontSize: '18px', fontWeight: '800', color: '#4F6EF7', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
+          <span style={{ fontSize: '18px', fontWeight: '800', color: C.primary, fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
         </a>
         <span style={{
-          fontSize: '11px', padding: '3px 10px', borderRadius: '20px',
-          backgroundColor: 'rgba(139,92,246,0.15)', color: '#8B5CF6',
-          border: '1px solid rgba(139,92,246,0.3)', fontWeight: 'bold',
-        }}>🏢 Mode Klien</span>
+          fontSize: '11px', padding: '3px 10px', borderRadius: R.pill,
+          backgroundColor: C.primaryTint, color: C.primary,
+          border: `1px solid ${C.primaryBorder}`, fontWeight: '600',
+          display: 'inline-flex', alignItems: 'center', gap: '5px',
+        }}><Building2 size={12} strokeWidth={1.5} /> Mode Klien</span>
       </div>
 
+      {/* Nav links */}
       <div className="nav-links-kl" style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
         {navLinks.map(({ href, label }) => (
           <a key={href} href={href} style={{
-            color: isActive(href) ? 'white' : 'rgba(255,255,255,0.5)',
+            color: isActive(href) ? C.primary : C.textMuted,
             textDecoration: 'none', fontSize: '13px',
             fontWeight: isActive(href) ? '600' : '500',
-            padding: '6px 14px', borderRadius: '6px',
-            backgroundColor: isActive(href) ? 'rgba(139,92,246,0.2)' : 'transparent',
+            padding: '6px 14px', borderRadius: R.sm,
+            backgroundColor: isActive(href) ? C.primaryTint : 'transparent',
           }}>{label}</a>
         ))}
         <a href="/klien/post-proyek" style={{
           marginLeft: '8px',
-          padding: '7px 16px', backgroundColor: '#8B5CF6', color: 'white',
-          textDecoration: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold',
+          padding: '7px 16px', backgroundColor: C.primary, color: 'white',
+          textDecoration: 'none', borderRadius: R.sm, fontSize: '13px', fontWeight: '600',
         }}>+ Post Proyek</a>
       </div>
 
+      {/* Right-side controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {/* Tombol mode switch + konfirmasi */}
+
+        {/* Mode switch */}
         <div className="nav-mode-kl" style={{ position: 'relative' }}>
           <button
             onClick={handleKeFreelancer}
             style={{
-              fontSize: '12px', padding: '4px 10px', borderRadius: '6px',
-              border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.6)',
-              background: 'transparent', cursor: 'pointer',
+              fontSize: '12px', padding: '5px 12px', borderRadius: R.pill,
+              border: `1px solid ${C.primaryBorder}`, color: C.primary,
+              background: 'transparent', cursor: 'pointer', fontFamily: theme.fonts.body,
             }}
           >
             Ke Mode Freelancer →
@@ -128,11 +137,12 @@ export default function NavbarKlien() {
           {showKonfirmasi && (
             <div style={{
               position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-              backgroundColor: '#131929', border: '1px solid #1e2d4a',
-              borderRadius: '12px', padding: '16px', width: '280px',
-              zIndex: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              backgroundColor: C.bgWhite,
+              border: `1px solid ${C.border}`,
+              borderRadius: R.md, padding: '16px', width: '280px',
+              zIndex: 200, boxShadow: theme.shadow.hover,
             }}>
-              <p style={{ color: 'white', fontSize: '13px', lineHeight: '1.5', marginBottom: '12px' }}>
+              <p style={{ color: C.textDark, fontSize: '13px', lineHeight: '1.5', marginBottom: '12px' }}>
                 Aktifkan juga mode Freelancer? Kamu bisa apply proyek setelah ini.
               </p>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -140,10 +150,10 @@ export default function NavbarKlien() {
                   onClick={handleAktifkanFreelancer}
                   disabled={aktivasi}
                   style={{
-                    flex: 1, padding: '8px', backgroundColor: '#4F6EF7', color: 'white',
-                    border: 'none', borderRadius: '6px', fontSize: '12px',
-                    fontWeight: 'bold', cursor: aktivasi ? 'not-allowed' : 'pointer',
-                    opacity: aktivasi ? 0.7 : 1,
+                    flex: 1, padding: '8px', backgroundColor: C.primary, color: 'white',
+                    border: 'none', borderRadius: R.sm, fontSize: '12px',
+                    fontWeight: '600', cursor: aktivasi ? 'not-allowed' : 'pointer',
+                    opacity: aktivasi ? 0.7 : 1, fontFamily: theme.fonts.body,
                   }}
                 >
                   {aktivasi ? 'Mengaktifkan...' : 'Ya, aktifkan'}
@@ -152,8 +162,9 @@ export default function NavbarKlien() {
                   onClick={() => setShowKonfirmasi(false)}
                   style={{
                     flex: 1, padding: '8px', backgroundColor: 'transparent',
-                    color: '#8892a4', border: '1px solid #1e2d4a',
-                    borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+                    color: C.textMuted, border: `1px solid ${C.border}`,
+                    borderRadius: R.sm, fontSize: '12px', cursor: 'pointer',
+                    fontFamily: theme.fonts.body,
                   }}
                 >
                   Batal
@@ -163,27 +174,36 @@ export default function NavbarKlien() {
           )}
         </div>
 
-        <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
+        <div style={{ width: 1, height: 20, backgroundColor: C.border }} />
+
         {firstName && (
-          <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ color: C.textMuted, fontSize: '13px', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {firstName}
           </span>
         )}
+
         {/* Bell */}
         <div style={{ position: 'relative' }}>
-          <button onClick={() => setShowBell(b => !b)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.5)' }}>
+          <button onClick={() => setShowBell(b => !b)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: C.textMuted }}>
             <Bell size={17} strokeWidth={1.8} />
           </button>
           {showBell && (
-            <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '10px', padding: '16px', width: '240px', zIndex: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-              <p style={{ fontSize: '13px', color: '#8892a4', textAlign: 'center' }}>🔔 Sistem notifikasi akan segera hadir</p>
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+              backgroundColor: C.bgWhite, border: `1px solid ${C.border}`,
+              borderRadius: R.md, padding: '16px', width: '240px',
+              zIndex: 200, boxShadow: theme.shadow.hover,
+            }}>
+              <p style={{ fontSize: '13px', color: C.textMuted, textAlign: 'center' }}>🔔 Sistem notifikasi akan segera hadir</p>
             </div>
           )}
         </div>
+
         <button onClick={handleLogout} style={{
           padding: '6px 14px', backgroundColor: 'transparent',
-          border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px',
-          color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: '13px',
+          border: `1px solid ${C.border}`, borderRadius: R.sm,
+          color: C.textMuted, cursor: 'pointer', fontSize: '13px',
+          fontFamily: theme.fonts.body,
         }}>Keluar</button>
       </div>
     </div>

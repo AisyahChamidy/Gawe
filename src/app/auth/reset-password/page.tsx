@@ -2,6 +2,12 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { Lock, CheckCircle } from 'lucide-react'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
+
+const STATUS_RED = '#EF4444'
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
@@ -27,35 +33,60 @@ export default function ResetPasswordPage() {
     setLoading(false)
   }
 
-  const inp = { width: '100%', padding: '12px 14px', backgroundColor: '#0d1526', border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box' as const }
+  const inp: React.CSSProperties = {
+    width: '100%', padding: '10px 12px 10px 38px',
+    backgroundColor: C.bgWhite, border: `1px solid ${C.border}`,
+    borderRadius: R.sm, color: C.textDark, fontSize: '14px',
+    outline: 'none', boxSizing: 'border-box',
+  }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
-      <div style={{ backgroundColor: '#0d1526', border: '1px solid #1e2d4a', borderRadius: '16px', padding: '40px', width: '100%', maxWidth: '400px', margin: '0 16px' }}>
-        <h1 style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Reset Password</h1>
-        <p style={{ color: '#8892a4', fontSize: '14px', marginBottom: '28px' }}>Masukkan password baru kamu.</p>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgLavenderSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: theme.fonts.body }}>
+      <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.lg, padding: '40px', width: '100%', maxWidth: '400px', margin: '0 16px', boxShadow: theme.shadow.hover }}>
+
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: C.textDark, fontFamily: theme.fonts.headline, marginBottom: '6px' }}>Gawe</div>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: C.textDark, marginBottom: '6px' }}>Reset Password</h1>
+          <p style={{ color: C.textMuted, fontSize: '14px' }}>Masukkan password baru kamu.</p>
+        </div>
 
         {done ? (
-          <div style={{ backgroundColor: '#152d1e', border: '1px solid #10B981', borderRadius: '10px', padding: '20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>✅</div>
-            <p style={{ color: '#10B981', fontWeight: 'bold' }}>Password berhasil diubah!</p>
-            <p style={{ color: '#8892a4', fontSize: '13px', marginTop: '8px' }}>Mengalihkan ke halaman masuk...</p>
+          <div style={{ backgroundColor: C.successTint, border: `1px solid ${C.success}33`, borderRadius: R.sm, padding: '24px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+              <CheckCircle size={40} strokeWidth={1.5} color={C.success} />
+            </div>
+            <p style={{ color: C.success, fontWeight: 700, marginBottom: '8px' }}>Password berhasil diubah!</p>
+            <p style={{ color: C.textMuted, fontSize: '13px', marginTop: '8px' }}>Mengalihkan ke halaman masuk...</p>
           </div>
         ) : (
           <>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ color: '#8892a4', fontSize: '13px', display: 'block', marginBottom: '8px' }}>Password Baru</label>
-              <input style={inp} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Minimal 6 karakter" />
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ color: C.textMuted, fontSize: '13px', display: 'block', marginBottom: '8px' }}>Password Baru</label>
+              <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                  <Lock size={16} strokeWidth={1.5} color={C.textTertiary} />
+                </div>
+                <input style={inp} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Minimal 6 karakter" />
+              </div>
             </div>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ color: '#8892a4', fontSize: '13px', display: 'block', marginBottom: '8px' }}>Konfirmasi Password</label>
-              <input style={inp} type="password" value={konfirmasi} onChange={e => setKonfirmasi(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleReset()} placeholder="Ulangi password baru" />
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ color: C.textMuted, fontSize: '13px', display: 'block', marginBottom: '8px' }}>Konfirmasi Password</label>
+              <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                  <Lock size={16} strokeWidth={1.5} color={C.textTertiary} />
+                </div>
+                <input style={inp} type="password" value={konfirmasi} onChange={e => setKonfirmasi(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleReset()} placeholder="Ulangi password baru" />
+              </div>
             </div>
 
-            {error && <div style={{ backgroundColor: '#2d1515', border: '1px solid #EF4444', borderRadius: '8px', padding: '10px 14px', color: '#EF4444', fontSize: '13px', marginBottom: '16px' }}>{error}</div>}
+            {error && (
+              <div style={{ backgroundColor: STATUS_RED + '18', border: `1px solid ${STATUS_RED}33`, borderRadius: R.sm, padding: '10px 14px', color: STATUS_RED, fontSize: '13px', marginBottom: '16px' }}>
+                {error}
+              </div>
+            )}
 
-            <button onClick={handleReset} disabled={loading} style={{ width: '100%', padding: '13px', backgroundColor: loading ? '#2a3a6a' : '#4F6EF7', color: 'white', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}>
+            <button onClick={handleReset} disabled={loading} style={{ width: '100%', padding: '13px', backgroundColor: C.primary, color: 'white', border: 'none', borderRadius: R.sm, fontSize: '15px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
               {loading ? 'Menyimpan...' : 'Simpan Password Baru'}
             </button>
           </>

@@ -1,888 +1,741 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { useEffect, useRef, useState, ReactNode, CSSProperties } from 'react'
 import { motion, useInView, useMotionValue, useSpring } from 'framer-motion'
 import {
-  ShieldCheck, Zap, Wallet, ArrowRight, CheckCircle2,
-  Briefcase, ArrowUpRight, TrendingUp, Clock, Lock,
-  ChevronRight, Star
+  ShieldCheck, Rocket, CheckCircle,
+  ChevronDown, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 
-// ── Animated number ────────────────────────────────────────────────────
+// ── Design tokens ────────────────────────────────────────────────────────
+const C = {
+  bg: '#FFFFFF',
+  bgAlt: '#F8F7FE',
+  primary: '#534AB7',
+  primaryTint: '#EEEDFE',
+  primaryBorder: '#CECBF6',
+  coral: '#D4537E',
+  coralTint: '#FBEAF0',
+  success: '#1D9E75',
+  successTint: '#E1F5EE',
+  text: '#26215C',
+  textMuted: '#8A87A8',
+  textTertiary: '#AFA9EC',
+  border: '#EEEDFE',
+  meshBase: '#0F0C2E',
+}
+const R = { sm: '8px', md: '14px', lg: '20px', pill: '24px' }
+const SH = '0 8px 24px rgba(83,74,183,0.08)'
+const SH_HOVER = '0 16px 40px rgba(83,74,183,0.14)'
+const mesh = `
+  radial-gradient(circle at 20% 30%, rgba(127,119,221,0.55) 0%, transparent 45%),
+  radial-gradient(circle at 75% 20%, rgba(212,83,126,0.45) 0%, transparent 45%),
+  radial-gradient(circle at 60% 75%, rgba(127,119,221,0.4) 0%, transparent 50%),
+  radial-gradient(circle at 15% 85%, rgba(237,147,177,0.4) 0%, transparent 45%),
+  radial-gradient(circle at 90% 60%, rgba(83,74,183,0.5) 0%, transparent 40%)
+`
+const fadeUp = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }
+const fv = { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }
+
+// ── AnimatedNumber ───────────────────────────────────────────────────────
 function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const motionVal = useMotionValue(0)
   const spring = useSpring(motionVal, { stiffness: 60, damping: 18 })
   const inView = useInView(ref, { once: true, margin: '-80px' })
-
-  useEffect(() => {
-    if (inView) motionVal.set(value)
-  }, [inView, value, motionVal])
-
-  useEffect(() => {
-    return spring.on('change', (v) => {
-      if (ref.current) ref.current.textContent = Math.round(v) + suffix
-    })
-  }, [spring, suffix])
-
+  useEffect(() => { if (inView) motionVal.set(value) }, [inView, value, motionVal])
+  useEffect(() => spring.on('change', v => { if (ref.current) ref.current.textContent = Math.round(v) + suffix }), [spring, suffix])
   return <span ref={ref}>0{suffix}</span>
 }
 
-// ── Trust Score Ring ───────────────────────────────────────────────────
+// ── TrustRing ────────────────────────────────────────────────────────────
 function TrustRing({ score, size = 80, animate = false }: { score: number; size?: number; animate?: boolean }) {
-  const [current, setCurrent] = useState(animate ? 0 : score)
+  const [cur, setCur] = useState(animate ? 0 : score)
   const ref = useRef<SVGSVGElement>(null)
-  const inView = useInView(ref as any, { once: true, margin: '-60px' })
-
+  const inView = useInView(ref as React.RefObject<Element>, { once: true, margin: '-60px' })
   useEffect(() => {
     if (!animate || !inView) return
     let start: number | null = null
-    const duration = 1600
-    const raf = (ts: number) => {
+    const tick = (ts: number) => {
       if (!start) start = ts
-      const p = Math.min((ts - start) / duration, 1)
-      const eased = 1 - Math.pow(1 - p, 3)
-      setCurrent(Math.round(eased * score))
-      if (p < 1) requestAnimationFrame(raf)
+      const p = Math.min((ts - start) / 1600, 1)
+      setCur(Math.round((1 - Math.pow(1 - p, 3)) * score))
+      if (p < 1) requestAnimationFrame(tick)
     }
-    requestAnimationFrame(raf)
+    requestAnimationFrame(tick)
   }, [inView, animate, score])
-
-  const r = size * 0.38
-  const circ = 2 * Math.PI * r
-  const offset = circ - (current / 100) * circ
-
-  const color = current >= 80 ? '#22D3EE' : current >= 60 ? '#4F6EF7' : '#8B5CF6'
-
+  const r = size * 0.38, circ = 2 * Math.PI * r
   return (
     <svg ref={ref} width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
-      <circle
-        cx={size/2} cy={size/2} r={r} fill="none"
-        stroke={color} strokeWidth="3"
-        strokeDasharray={circ} strokeDashoffset={offset}
-        strokeLinecap="round"
-        transform={`rotate(-90 ${size/2} ${size/2})`}
-        style={{ transition: 'stroke-dashoffset 0.1s linear, stroke 0.5s ease' }}
-      />
-      <text
-        x={size/2} y={size/2 + size*0.09}
-        textAnchor="middle" fill="white"
-        fontSize={size * 0.26} fontWeight="700"
-        fontFamily="'Geist Mono', 'Courier New', monospace"
-      >
-        {current}
-      </text>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.primaryBorder} strokeWidth="3" />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.primary} strokeWidth="3"
+        strokeDasharray={circ} strokeDashoffset={circ - (cur / 100) * circ} strokeLinecap="round"
+        transform={`rotate(-90 ${size / 2} ${size / 2})`} style={{ transition: 'stroke-dashoffset 0.1s linear' }} />
+      <text x={size / 2} y={size / 2 + size * 0.09} textAnchor="middle" fill={C.text}
+        fontSize={size * 0.26} fontWeight="700" fontFamily="'Geist Mono',monospace">{cur}</text>
     </svg>
   )
 }
 
-const TICKER = [
-  { cat: 'Desain', label: 'Logo Brand', price: 'Rp200rb' },
-  { cat: 'Konten', label: 'Caption IG', price: 'Rp150rb' },
-  { cat: 'Admin', label: 'Data Entry', price: 'Rp100rb' },
-  { cat: 'Video', label: 'Edit Reels', price: 'Rp350rb' },
-  { cat: 'Bahasa', label: 'Terjemahan EN-ID', price: 'Rp180rb' },
-  { cat: 'Web', label: 'Landing Page', price: 'Rp500rb' },
-  { cat: 'Ilustrasi', label: 'Karakter Digital', price: 'Rp300rb' },
-  { cat: 'Marketing', label: 'Kelola Sosmed', price: 'Rp400rb' },
-]
-
-const STEPS = [
-  {
-    num: '01',
-    icon: <Star size={18} strokeWidth={1.5} color="#4F6EF7" />,
-    title: 'Daftar & buktikan skillmu',
-    desc: 'Buat akun gratis. Ambil skill test 15 menit dan verifikasi KTP. Trust Score-mu langsung terbentuk — bukti nyata kemampuanmu yang bisa dilihat klien sebelum mereka hire kamu.',
-    result: 'Dapat Trust Score tanpa portofolio sebelumnya.',
-    color: '#4F6EF7',
-  },
-  {
-    num: '02',
-    icon: <Zap size={18} strokeWidth={1.5} color="#8B5CF6" />,
-    title: 'Temukan & lamar proyek',
-    desc: 'Platform mencocokkan proyek berdasarkan skill dan budget-mu. Lamar dengan satu klik — tidak perlu proposal bertele-tele untuk mulai.',
-    result: 'Proyek mikro mulai Rp100rb, hasil nyata dalam hari.',
-    color: '#8B5CF6',
-  },
-  {
-    num: '03',
-    icon: <Wallet size={18} strokeWidth={1.5} color="#22D3EE" />,
-    title: 'Kerjakan & terima bayaran',
-    desc: 'Dana sudah aman di Jaminan Pembayaran Gawe sebelum kamu mulai kerja. Klien approve, uang langsung masuk wallet. Sesimpel itu.',
-    result: 'Bayaran 100% terjamin. Zero risiko kerja sia-sia.',
-    color: '#22D3EE',
-  },
-]
-
-const PROFILES = [
-  { name: 'Reza A.', role: 'UI Designer', city: 'Bandung', score: 82, color: '#4F6EF7' },
-  { name: 'Siti N.', role: 'Content Writer', city: 'Surabaya', score: 76, color: '#8B5CF6' },
-  { name: 'Dimas F.', role: 'Web Dev', city: 'Jakarta', score: 91, color: '#22D3EE' },
-]
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
-  visible: (i = 0) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.65, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] as any }
-  }),
-}
-
-export default function LandingPage() {
-  const [liveStats, setLiveStats] = useState({ freelancers: 500, projects: 100 })
-
-  useEffect(() => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    async function fetchStats() {
-      const [{ count: fc }, { count: pc }] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).in('role', ['freelancer', 'both']),
-        supabase.from('projects').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-      ])
-      if (fc || pc) {
-        setLiveStats({ freelancers: fc || 500, projects: pc || 100 })
-      }
-    }
-    fetchStats()
-  }, [])
+// ── TiltCard ─────────────────────────────────────────────────────────────
+function TiltCard({ children, style }: { children: ReactNode, style?: CSSProperties }) {
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
+  const [hovered, setHovered] = useState(false)
 
   return (
+    <div
+      style={{
+        ...style,
+        transform: `perspective(1000px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg) ${hovered ? 'scale(1.02)' : 'scale(1)'}`,
+        transition: 'transform 0.15s ease-out, box-shadow 0.25s ease',
+        boxShadow: hovered
+          ? '0 20px 48px rgba(83,74,183,0.16)'
+          : (style?.boxShadow ?? '0 8px 24px rgba(83,74,183,0.06)'),
+      }}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect()
+        const x = (e.clientX - rect.left) / rect.width - 0.5
+        const y = (e.clientY - rect.top) / rect.height - 0.5
+        setTilt({ x: x * 8, y: y * -8 })
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setTilt({ x: 0, y: 0 }); setHovered(false) }}
+    >
+      {children}
+    </div>
+  )
+}
+
+// ── FloatingCard ─────────────────────────────────────────────────────────
+function FloatingCard({ children, position }: {
+  children: ReactNode
+  position: { left?: number; right?: number; top?: number; bottom?: number }
+}) {
+  return (
     <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0A0E1A',
-      color: 'white',
-      fontFamily: "'Work Sans', sans-serif",
-      overflowX: 'hidden',
+      position: 'absolute', ...position,
+      background: 'rgba(255,255,255,0.92)', borderRadius: R.md,
+      padding: '14px 18px', backdropFilter: 'blur(8px)',
     }}>
+      {children}
+    </div>
+  )
+}
+
+// ── HeroSection ──────────────────────────────────────────────────────────
+function HeroSection() {
+  return (
+    <section style={{ background: C.bg, padding: '64px 24px 80px', textAlign: 'center' }}>
+      <div style={{ display: 'inline-block', background: C.primaryTint, color: C.text, fontSize: 12, fontWeight: 500, padding: '5px 14px', borderRadius: R.pill, marginBottom: 20 }}>
+        Skor 0 hari ini, proyek pertama minggu ini
+      </div>
+      <h1 style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontWeight: 700, fontSize: 46, lineHeight: 1.15, color: C.text, margin: '0 0 16px', letterSpacing: '-0.5px' }}>
+        Skill ada.<br />Klien belum ada.<br /><span style={{ color: C.primary }}>Gawe</span> bantu itu.
+      </h1>
+      <p style={{ fontSize: 16, color: C.textMuted, maxWidth: 480, margin: '0 auto 32px', lineHeight: 1.6 }}>
+        Trust Score, escrow protection, dan proyek mikro yang dirancang khusus untuk freelancer pemula Indonesia — tanpa portofolio pun bisa mulai.
+      </p>
+      <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+        <a href="/auth/daftar"
+          style={{ background: C.primary, color: C.primaryTint, padding: '13px 28px', borderRadius: R.pill, fontWeight: 500, fontSize: 14, textDecoration: 'none', transition: 'transform 0.15s ease, opacity 0.15s ease', display: 'inline-block' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
+          Mulai sebagai freelancer
+        </a>
+        <a href="/auth/daftar"
+          style={{ background: 'transparent', color: C.text, border: `0.5px solid ${C.primaryBorder}`, padding: '13px 28px', borderRadius: R.pill, fontWeight: 500, fontSize: 14, textDecoration: 'none', transition: 'transform 0.15s ease, opacity 0.15s ease', display: 'inline-block' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
+          Posting proyek
+        </a>
+      </div>
+      <div style={{ position: 'relative', height: 280, marginTop: 48, overflow: 'hidden', background: C.meshBase, borderRadius: R.lg, maxWidth: 1000, marginLeft: 'auto', marginRight: 'auto' }}>
+        <div style={{ position: 'absolute', top: '-20%', right: '-20%', bottom: '-20%', left: '-20%', background: mesh, filter: 'blur(40px)' }} />
+        <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center', pointerEvents: 'none' }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 8 }}>Trust Score</div>
+          <div style={{ width: 80, height: 80, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
+            <span style={{ fontSize: 28, fontWeight: 700, color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-playfair),Georgia,serif' }}>82</span>
+          </div>
+          <div style={{ width: 120, height: 3, background: 'rgba(255,255,255,0.12)', borderRadius: 4, overflow: 'hidden', margin: '0 auto' }}>
+            <div style={{ width: '82%', height: '100%', background: 'rgba(255,255,255,0.6)', borderRadius: 4 }} />
+          </div>
+        </div>
+        <FloatingCard position={{ left: 24, top: 24 }}>
+          <p style={{ fontSize: 11, color: C.textTertiary, margin: '0 0 4px' }}>Trust Score</p>
+          <p style={{ fontSize: 26, fontWeight: 700, color: C.text, margin: 0 }}>82<span style={{ fontSize: 14, color: C.textTertiary }}>/100</span></p>
+        </FloatingCard>
+        <FloatingCard position={{ right: 24, top: 24 }}>
+          <p style={{ fontSize: 12, color: C.text, margin: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <CheckCircle size={14} strokeWidth={1.5} color={C.success} />Skill test: 92/100
+          </p>
+        </FloatingCard>
+        <FloatingCard position={{ left: 24, bottom: 24 }}>
+          <p style={{ fontSize: 12, color: C.text, margin: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Rocket size={14} strokeWidth={1.5} color={C.primary} />3 proyek cocok untukmu
+          </p>
+        </FloatingCard>
+        <FloatingCard position={{ right: 24, bottom: 24 }}>
+          <p style={{ fontSize: 12, color: C.text, margin: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <ShieldCheck size={14} strokeWidth={1.5} color={C.primary} />Escrow aman
+          </p>
+        </FloatingCard>
+      </div>
+    </section>
+  )
+}
+
+// ── Data ─────────────────────────────────────────────────────────────────
+const TICKER = [
+  { cat: 'ILUSTRASI', task: 'Karakter Digital', price: 'Rp300rb' },
+  { cat: 'MARKETING', task: 'Kelola Sosmed', price: 'Rp400rb' },
+  { cat: 'DESAIN', task: 'Logo Brand', price: 'Rp200rb' },
+  { cat: 'KONTEN', task: 'Caption IG', price: 'Rp150rb' },
+  { cat: 'ADMIN', task: 'Data Entry', price: 'Rp100rb' },
+  { cat: 'VIDEO', task: 'Edit Reels', price: 'Rp350rb' },
+  { cat: 'WEB', task: 'Landing Page', price: 'Rp800rb' },
+  { cat: 'FOTO', task: 'Edit Produk', price: 'Rp250rb' },
+]
+
+const STEPS_FL = [
+  { title: 'Buat profil dalam 10 menit', desc: 'Ceritakan skill kamu, jam kerja, dan tipe proyek yang diinginkan. Platform langsung tahu proyek mana yang cocok.', hl: '> Profil langsung aktif dan terlihat klien.' },
+  { title: 'Ambil skill test — 15 menit', desc: 'Buktikan kemampuanmu. Hasilnya jadi Trust Score yang langsung terlihat oleh klien. Tidak perlu pengalaman sebelumnya.', hl: '> Trust Score terbentuk hari itu juga.' },
+  { title: 'Ambil proyek pertamamu', desc: 'Platform merekomendasikan proyek yang sesuai levelmu. Brief jelas, budget transparan.', hl: '> Proyek mikro mulai Rp100rb.' },
+  { title: 'Selesai. Bayaran masuk. Ulangi.', desc: 'Invoice otomatis terkirim. Bayaran cair dalam 1×24 jam. Trust Score naik.', hl: '> Bayaran 100% terjamin.' },
+]
+
+const STEPS_KL = [
+  { title: 'Post proyek dalam 5 menit', desc: 'Isi brief yang terstruktur — sistem kami panduin kamu supaya brief-nya jelas dan tidak ambigu.', hl: '> Freelancer langsung apply dalam hitungan jam.' },
+  { title: 'Pilih dari freelancer terverifikasi', desc: 'Lihat Trust Score, skill test nyata, dan review dari klien sebelumnya.', hl: '> Bukan profil kosong — ini bukti nyata.' },
+  { title: 'Kerja sama dalam platform', desc: 'Komunikasi, revisi, dan pengiriman hasil — semua terpantau.', hl: '> Dana aman di escrow sampai kamu approve.' },
+  { title: 'Approve dan selesai', desc: 'Beri review, bayaran otomatis cair ke freelancer. Proyek terdokumentasi rapi.', hl: '> Kalau tidak puas, ada mediasi gratis.' },
+]
+
+const FAQ = [
+  { q: 'Kenapa 10%? Bukankah itu mahal?', a: 'Dibanding biaya iklan, waktu nunggu, atau proyek yang gagal bayar — 10% itu murah. Dan kamu tidak keluar uang sebelum proyek selesai.' },
+  { q: 'Kapan komisinya bisa lebih kecil?', a: 'Semakin banyak proyek yang kamu selesaikan, komisimu turun bertahap. Ini cara kami menghargai yang aktif.' },
+  { q: 'Bagaimana kalau klien tidak bayar?', a: 'Sistem kami memastikan dana klien dikonfirmasi sebelum kamu mulai kerja. Kalau ada sengketa, tim Gawe yang mediasi.' },
+]
+
+// ── Separator ─────────────────────────────────────────────────────────────
+function PilarSeparator() {
+  return (
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', marginBottom: 96 }}>
+      <div style={{ height: '0.5px', background: 'linear-gradient(90deg, transparent 0%, #CECBF6 20%, #CECBF6 80%, transparent 100%)' }} />
+    </div>
+  )
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────
+export default function LandingPage() {
+  const [howTab, setHowTab] = useState<'freelancer' | 'klien'>('freelancer')
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [hoveredStep, setHoveredStep] = useState<number | null>(null)
+  const [projectValue, setProjectValue] = useState(1000000)
+  const testimoniScrollRef = useRef<HTMLDivElement>(null)
+  const steps = howTab === 'freelancer' ? STEPS_FL : STEPS_KL
+
+  // suppress unused warning — AnimatedNumber & TrustRing are helpers available for use
+  void AnimatedNumber
+  void TrustRing
+
+  return (
+    <div style={{ minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'Work Sans',sans-serif", overflowX: 'hidden' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Work+Sans:wght@400;500;600&display=swap');
-
-        *, *::before, *::after { box-sizing: border-box; }
-
-        :root {
-          --navy:   #0A0E1A;
-          --navy-2: #111827;
-          --navy-3: #1a2235;
-          --indigo: #4F6EF7;
-          --violet: #8B5CF6;
-          --cyan:   #22D3EE;
-          --border: rgba(255,255,255,0.08);
-          --muted:  rgba(255,255,255,0.38);
-          --secondary: rgba(255,255,255,0.62);
-        }
-
-        @keyframes ticker { to { transform: translateX(-33.333%); } }
-        @keyframes scanline {
-          0%, 100% { opacity: 0; }
-          50% { opacity: 1; }
-        }
-
-        .ticker-track { animation: ticker 32s linear infinite; }
-        .ticker-track:hover { animation-play-state: paused; }
-
-        /* Outfit for headlines */
-        h1, h2, h3, .outfit { font-family: 'Outfit', sans-serif; }
-        /* Geist Mono fallback for data */
-        .mono { font-family: 'Geist Mono', 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; }
-
-        .card {
-          background: var(--navy-2);
-          border: 1px solid var(--border);
-          border-radius: 16px;
-          transition: border-color 0.25s ease, box-shadow 0.25s ease;
-          position: relative;
-          overflow: hidden;
-        }
-        .card:hover {
-          border-color: rgba(79,110,247,0.25);
-          box-shadow: 0 0 0 1px rgba(79,110,247,0.1), 0 20px 48px rgba(0,0,0,0.4);
-        }
-
-        .btn-primary {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: #4F6EF7;
-          color: white; text-decoration: none;
-          padding: 12px 24px; border-radius: 8px;
-          font-size: 14px; font-weight: 600;
-          font-family: 'Work Sans', sans-serif;
-          transition: background 0.2s, transform 0.15s;
-          white-space: nowrap;
-          letter-spacing: -0.1px;
-        }
-        .btn-primary:hover { background: #6380f8; transform: translateY(-1px); }
-
-        .btn-outline {
-          display: inline-flex; align-items: center; gap: 8px;
-          background: transparent;
-          border: 1px solid var(--border);
-          color: var(--secondary); text-decoration: none;
-          padding: 12px 24px; border-radius: 8px;
-          font-size: 14px; font-weight: 500;
-          font-family: 'Work Sans', sans-serif;
-          transition: border-color 0.2s, color 0.2s;
-          white-space: nowrap;
-        }
-        .btn-outline:hover { border-color: rgba(255,255,255,0.2); color: white; }
-
-        .nav-link {
-          color: var(--muted); text-decoration: none;
-          font-size: 14px; font-weight: 500;
-          padding: 8px 14px; border-radius: 6px;
-          transition: color 0.15s, background 0.15s;
-        }
-        .nav-link:hover { color: white; background: rgba(255,255,255,0.05); }
-
-        .tag {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: 11px; font-weight: 600;
-          letter-spacing: 0.8px; text-transform: uppercase;
-          padding: 4px 10px; border-radius: 4px;
-          font-family: 'Work Sans', sans-serif;
-        }
-
-        .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
-
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #0A0E1A; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
-
-        @media (max-width: 640px) {
-          .nav-hide-mobile { display: none !important; }
-          .nav-inner { padding: 0 16px !important; }
-          .hero-section { padding: 56px 16px 40px !important; }
-          .hero-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
-          .hero-right { display: none !important; }
-          .bento-section { padding: 60px 16px !important; }
-          .bento-grid { grid-template-columns: 1fr !important; }
-          .bento-grid > * { grid-column: 1 !important; grid-row: auto !important; }
-          .how-section-inner { padding: 60px 16px !important; }
-          .how-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
-          .how-sticky { position: static !important; }
-          .dual-cta-section { padding: 60px 16px !important; }
-          .dual-cta-grid { grid-template-columns: 1fr !important; }
-          .final-cta-inner { padding: 64px 16px !important; }
-          .footer-inner { padding: 24px 16px !important; flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Work+Sans:wght@400;500;600&display=swap');
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
+        @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        .testimoni-scroll::-webkit-scrollbar{display:none}
+        .testimoni-scroll{scrollbar-width:none}
+        @media(max-width:768px){
+          .nav-mid{display:none!important}
+          .pain-grid,.pilar-grid,.momentum-grid,.komisi-grid,.dual-grid,.testi-grid,.footer-cols{grid-template-columns:1fr!important}
         }
       `}</style>
 
-      {/* ── NAV ── */}
-      <motion.header
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          position: 'sticky', top: 0, zIndex: 200,
-          borderBottom: '1px solid var(--border)',
-          backgroundColor: 'rgba(10,14,26,0.88)',
-          backdropFilter: 'blur(20px)',
-        }}
-      >
-        <div className="nav-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* 1 — NAV */}
+      <motion.header initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+        style={{ position: 'sticky', top: 0, zIndex: 200, background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(20px)', borderBottom: `0.5px solid ${C.border}` }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 40px', height: 68, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#22D3EE', boxShadow: '0 0 8px rgba(34,211,238,0.6)' }} />
-            <span className="outfit" style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.5px' }}>Gawe</span>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: C.primary }} />
+            <span className="outfit" style={{ fontSize: 20, fontWeight: 700, color: C.text }}>Gawe</span>
           </div>
-          <nav style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <span className="nav-hide-mobile" style={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Link href="#cara-kerja" className="nav-link">Cara Kerja</Link>
-              <Link href="/proyek" className="nav-link">Proyek</Link>
-              <Link href="/auth/masuk" className="nav-link">Masuk</Link>
-              <div style={{ width: 1, height: 20, backgroundColor: 'var(--border)', margin: '0 8px' }} />
-            </span>
-            <Link href="/auth/daftar" className="btn-primary" style={{ padding: '8px 18px', fontSize: 13 }}>
-              Daftar Gratis <ArrowRight size={13} strokeWidth={2} />
-            </Link>
+          <nav className="nav-mid" style={{ display: 'flex', gap: 32 }}>
+            {[['Cara Kerja', '#cara-kerja'], ['Proyek', '/proyek'], ['Untuk Bisnis', '#dual-cta']].map(([l, h]) => (
+              <a key={l} href={h}
+                style={{ fontSize: 14, color: C.textMuted, textDecoration: 'none', transition: 'color 0.15s ease' }}
+                onMouseEnter={e => { e.currentTarget.style.color = C.primary }}
+                onMouseLeave={e => { e.currentTarget.style.color = C.textMuted }}
+              >{l}</a>
+            ))}
           </nav>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Link href="/auth/masuk" style={{ fontSize: 14, color: C.textMuted, textDecoration: 'none', marginRight: 16 }}>Masuk</Link>
+            <Link href="/auth/daftar"
+              style={{ background: C.primary, color: C.primaryTint, padding: '8px 20px', borderRadius: R.pill, fontSize: 13, fontWeight: 500, textDecoration: 'none', transition: 'transform 0.15s ease, opacity 0.15s ease', display: 'inline-block' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
+              Daftar Gratis →
+            </Link>
+          </div>
         </div>
       </motion.header>
 
-      {/* ── HERO ── */}
-      <section className="hero-section" style={{ maxWidth: 1200, margin: '0 auto', padding: '100px 32px 80px' }}>
-        <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: 64, alignItems: 'start' }}>
+      {/* 2 — HERO */}
+      <HeroSection />
 
-          {/* Left */}
-          <div>
-            <motion.div
-              variants={fadeUp} initial="hidden" animate="visible" custom={0}
-              style={{ marginBottom: 32 }}
-            >
-              <span className="tag" style={{ background: 'rgba(79,110,247,0.08)', border: '1px solid rgba(79,110,247,0.18)', color: '#4F6EF7' }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#22D3EE', display: 'inline-block', boxShadow: '0 0 6px rgba(34,211,238,0.8)' }} />
-                Platform Freelance untuk Pemula Indonesia
-              </span>
-            </motion.div>
-
-            <motion.h1
-              variants={fadeUp} initial="hidden" animate="visible" custom={1}
-              className="outfit"
-              style={{
-                fontSize: 'clamp(48px, 6vw, 80px)',
-                fontWeight: 900,
-                lineHeight: 1.0,
-                letterSpacing: '-3.5px',
-                marginBottom: 28,
-              }}
-            >
-              <span style={{ display: 'block', color: 'white' }}>Skill ada,</span>
-              <span style={{ display: 'block', color: '#22D3EE' }}>klien belum ada?</span>
-              <span style={{ display: 'block', color: 'white' }}>Yuk gawe bareng.</span>
-            </motion.h1>
-
-            <motion.p
-              variants={fadeUp} initial="hidden" animate="visible" custom={2}
-              style={{ fontSize: 17, lineHeight: 1.75, color: 'var(--secondary)', maxWidth: 480, marginBottom: 36 }}
-            >
-              Gawe menggantikan portofolio dengan{' '}
-              <strong style={{ color: 'white', fontWeight: 600 }}>Trust Score</strong>{' '}
-              — sistem reputasi yang membuktikan kemampuanmu dari hari pertama,
-              tanpa klien sebelumnya.
-            </motion.p>
-
-            <motion.div
-              variants={fadeUp} initial="hidden" animate="visible" custom={3}
-              style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 52 }}
-            >
-              <Link href="/auth/daftar" className="btn-primary">
-                Mulai Cari Kerja <ArrowRight size={14} strokeWidth={2} />
-              </Link>
-              <Link href="/klien/post-proyek" className="btn-outline">
-                <Briefcase size={14} strokeWidth={1.5} /> Post Proyek
-              </Link>
-            </motion.div>
-
-            {/* Stats row */}
-            <motion.div
-              variants={fadeUp} initial="hidden" animate="visible" custom={4}
-              style={{
-                display: 'grid', gridTemplateColumns: 'repeat(3, auto)',
-                gap: '0', alignItems: 'center',
-                borderTop: '1px solid var(--border)',
-                paddingTop: 28,
-              }}
-            >
-              {[
-                { value: liveStats.freelancers, suffix: '+', label: 'Freelancer tervalidasi' },
-                { value: liveStats.projects, suffix: '+', label: 'Proyek tersedia' },
-                { value: 10, suffix: '%', label: 'Komisi platform saja' },
-              ].map((stat, i) => (
-                <div key={i} style={{
-                  padding: '0 28px 0 0',
-                  marginRight: 28,
-                  borderRight: i < 2 ? '1px solid var(--border)' : 'none',
-                }}>
-                  <p className="outfit mono" style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-2px', color: 'white', lineHeight: 1, marginBottom: 4 }}>
-                    <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-                  </p>
-                  <p style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500 }}>{stat.label}</p>
-                </div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Right — Trust Score Dashboard Card */}
-          <motion.div
-            className="hero-right"
-            variants={fadeUp} initial="hidden" animate="visible" custom={2}
-          >
-            <div className="card" style={{
-              padding: 0,
-              borderRadius: 16,
-              overflow: 'hidden',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.5)',
-            }}>
-              {/* Card header — terminal style */}
-              <div style={{
-                padding: '12px 20px',
-                borderBottom: '1px solid var(--border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                backgroundColor: 'rgba(255,255,255,0.02)',
-              }}>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {['#ff5f57','#febc2e','#28c840'].map((c, i) => (
-                    <div key={i} style={{ width: 11, height: 11, borderRadius: '50%', backgroundColor: c }} />
-                  ))}
-                </div>
-                <span className="mono" style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.5px' }}>
-                  gawe://trust-score/dashboard
-                </span>
-                <div style={{ width: 60 }} />
-              </div>
-
-              {/* Main trust score */}
-              <div style={{ padding: '28px 24px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                    Trust Score
-                  </span>
-                  <span className="mono" style={{ fontSize: 10, color: '#22D3EE', backgroundColor: 'rgba(34,211,238,0.08)', padding: '2px 8px', borderRadius: 4 }}>
-                    LIVE
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 20, paddingTop: 4 }}>
-                  <TrustRing score={87} size={88} animate />
-                  <div>
-                    <div className="mono" style={{ fontSize: 40, fontWeight: 700, letterSpacing: '-2px', lineHeight: 1, color: 'white', marginBottom: 4 }}>
-                      87<span style={{ fontSize: 16, color: 'var(--muted)', fontWeight: 400 }}>/100</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: '#22D3EE' }}>↑ rata-rata platform</div>
-                    <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>dari skill test + KYC + aktivitas</div>
-                  </div>
-                </div>
-
-                {/* Score breakdown */}
-                <div style={{ marginBottom: 20 }}>
-                  {[
-                    { label: 'Skill Test', score: 25, max: 25, color: '#4F6EF7' },
-                    { label: 'Verifikasi KTP', score: 20, max: 20, color: '#22D3EE' },
-                    { label: 'Proyek Selesai', score: 24, max: 30, color: '#8B5CF6' },
-                    { label: 'Kelengkapan Profil', score: 10, max: 15, color: '#10B981' },
-                    { label: 'Kecepatan Respon', score: 8, max: 10, color: '#F59E0B' },
-                  ].map((item, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <span className="mono" style={{ fontSize: 10, color: 'var(--muted)', width: 100, flexShrink: 0 }}>{item.label}</span>
-                      <div style={{ flex: 1, height: 2, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 1, overflow: 'hidden' }}>
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${(item.score / item.max) * 100}%` }}
-                          transition={{ duration: 0.8, delay: 0.8 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                          style={{ height: '100%', backgroundColor: item.color, borderRadius: 1 }}
-                        />
-                      </div>
-                      <span className="mono" style={{ fontSize: 10, color: 'white', width: 36, textAlign: 'right', flexShrink: 0 }}>
-                        {item.score}/{item.max}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Badges */}
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 20, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
-                  {[
-                    { label: 'KTP Verified', color: '#22D3EE' },
-                    { label: 'Skill Tested', color: '#4F6EF7' },
-                    { label: 'Fast Responder', color: '#10B981' },
-                  ].map((b, i) => (
-                    <span key={i} style={{
-                      fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 4,
-                      color: b.color,
-                      backgroundColor: `${b.color}10`,
-                      border: `1px solid ${b.color}20`,
-                      letterSpacing: '0.3px',
-                    }}>
-                      ✓ {b.label}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Mini profiles */}
-                <div style={{ marginBottom: 4 }}>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 10 }}>
-                    Freelancer Terverifikasi
-                  </p>
-                  {PROFILES.map((p, i) => (
-                    <div key={i} style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '8px 10px',
-                      borderRadius: 8,
-                      backgroundColor: 'rgba(255,255,255,0.02)',
-                      border: '1px solid rgba(255,255,255,0.05)',
-                      marginBottom: 6,
-                    }}>
-                      <div style={{
-                        width: 30, height: 30, borderRadius: 6, backgroundColor: p.color,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 12, fontWeight: 700, flexShrink: 0,
-                      }}>
-                        {p.name[0]}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.2 }}>{p.name}</p>
-                        <p style={{ fontSize: 10, color: 'var(--muted)' }}>{p.role} · {p.city}</p>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span className="mono" style={{ fontSize: 14, fontWeight: 700, color: p.score >= 80 ? '#22D3EE' : '#4F6EF7' }}>
-                          {p.score}
-                        </span>
-                        <span className="mono" style={{ fontSize: 10, color: 'var(--muted)' }}>/100</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── TICKER ── */}
-      <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '12px 0', overflow: 'hidden', position: 'relative', backgroundColor: 'rgba(255,255,255,0.01)' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 80, background: 'linear-gradient(90deg, #0A0E1A, transparent)', zIndex: 2 }} />
-        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 80, background: 'linear-gradient(-90deg, #0A0E1A, transparent)', zIndex: 2 }} />
-        <div className="ticker-track" style={{ display: 'flex', width: 'max-content' }}>
-          {[...TICKER, ...TICKER, ...TICKER].map((item, i) => (
-            <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '3px 24px', borderRight: '1px solid var(--border)', whiteSpace: 'nowrap' }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: '#4F6EF7', backgroundColor: 'rgba(79,110,247,0.08)', padding: '2px 7px', borderRadius: 3, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                {item.cat}
-              </span>
-              <span style={{ fontSize: 12, color: 'var(--secondary)' }}>{item.label}</span>
-              <span className="mono" style={{ fontSize: 12, color: '#22D3EE', fontWeight: 600 }}>{item.price}</span>
-            </div>
+      {/* 3 — TICKER */}
+      <div style={{ background: C.bg, borderTop: `0.5px solid ${C.border}`, borderBottom: `0.5px solid ${C.border}`, padding: '16px 0', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', width: 'max-content', animation: 'ticker 30s linear infinite' }}>
+          {[...TICKER, ...TICKER].map((item, i) => (
+            <span key={i} style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 10, marginRight: 64 }}>
+              <span style={{ fontWeight: 700, color: '#534AB7', fontSize: 11, letterSpacing: '1.5px' }}>{item.cat}</span>
+              <span style={{ color: '#8A87A8', fontSize: 14 }}>{item.task}</span>
+              <span style={{ fontWeight: 600, color: '#534AB7', fontSize: 14 }}>{item.price}</span>
+              <span style={{ color: '#CECBF6', fontSize: 16 }}>·</span>
+            </span>
           ))}
         </div>
       </div>
 
-      {/* ── BENTO FEATURES ── */}
-      <section className="bento-section" style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px' }}>
+      {/* 5 — FEATURE SCROLL-SYNC */}
+      <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
+        style={{ background: C.bg, padding: '160px 0' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', marginBottom: 80 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: C.primary, letterSpacing: '1.5px', marginBottom: 12, textTransform: 'uppercase' }}>Tiga Pilar Gawe</p>
+          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 36, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', maxWidth: 600 }}>
+            Bukan cuma marketplace, tapi sistem yang berpihak ke pemula
+          </h2>
+        </div>
+
+        {/* Pilar 1 */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          style={{ marginBottom: 64 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0, ease: [0.16, 1, 0.3, 1] }}
+          style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', marginBottom: 96 }}
         >
-          <span className="tag" style={{ background: 'rgba(34,211,238,0.06)', border: '1px solid rgba(34,211,238,0.12)', color: '#22D3EE', marginBottom: 20, display: 'inline-flex' }}>
-            Kenapa Gawe?
-          </span>
-          <h2 className="outfit" style={{ fontSize: 'clamp(36px, 4vw, 54px)', fontWeight: 800, letterSpacing: '-2.5px', lineHeight: 1.0, maxWidth: 600 }}>
-            Dirancang untuk yang baru mulai.
-          </h2>
-        </motion.div>
-
-        {/* Bento grid */}
-        <div className="bento-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 12 }}>
-
-          {/* Trust Score — col 1-5, row 1-2 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="card"
-            style={{ gridColumn: 'span 5', gridRow: 'span 2', padding: 36 }}
-          >
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #4F6EF7, #22D3EE)' }} />
-            <div style={{ position: 'relative' }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: 'rgba(79,110,247,0.08)', border: '1px solid rgba(79,110,247,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-                <ShieldCheck size={20} strokeWidth={1.5} color="#4F6EF7" />
-              </div>
-              <span className="tag" style={{ background: 'rgba(79,110,247,0.06)', color: '#4F6EF7', border: '1px solid rgba(79,110,247,0.12)', marginBottom: 16, display: 'inline-flex' }}>
-                Trust Score System
-              </span>
-              <h3 className="outfit" style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1.15, marginBottom: 14 }}>
-                Reputasi dari hari pertama. Tanpa portofolio.
-              </h3>
-              <p style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--secondary)', marginBottom: 32 }}>
-                Skill test terverifikasi + KYC identitas = skor nyata 0–100 yang bisa dilihat klien sebelum mereka hire. Bukan klaim, tapi angka yang bisa dipertanggungjawabkan.
+          <div className="pilar-grid" style={{ display: 'grid', gridTemplateColumns: '6fr 5fr', gap: 64, alignItems: 'center' }}>
+            <div>
+              <span style={{ background: C.primaryTint, color: C.primary, fontSize: 12, fontWeight: 500, padding: '5px 12px', borderRadius: R.sm, display: 'inline-block', marginBottom: 16 }}>01 — Trust from Zero</span>
+              <h3 className="outfit" style={{ fontSize: 24, fontWeight: 700, color: C.text, marginBottom: 12 }}>Buktikan kemampuan tanpa portofolio</h3>
+              <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, marginBottom: 20 }}>
+                Skill test 15 menit + verifikasi KTP membangun Trust Score 0–100 yang langsung terlihat klien.
               </p>
-
-              <TrustRing score={82} size={96} animate />
-
-              <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {[
-                  { label: 'Skill Test', detail: 'Lulus 87/100', color: '#4F6EF7' },
-                  { label: 'Identitas', detail: 'KTP terverifikasi', color: '#22D3EE' },
-                  { label: 'Respon', detail: 'Rata-rata 1.8 jam', color: '#10B981' },
-                ].map((item, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 6, border: '1px solid rgba(255,255,255,0.04)' }}>
-                    <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: item.color, flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: 'var(--secondary)', flex: 1 }}>{item.label}</span>
-                    <span className="mono" style={{ fontSize: 11, color: item.color }}>{item.detail}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Jaminan Bayar — col 6-9 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className="card"
-            style={{ gridColumn: 'span 4', padding: 28 }}
-          >
-            <div style={{ position: 'relative' }}>
-              <div style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: 'rgba(34,211,238,0.08)', border: '1px solid rgba(34,211,238,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                <Wallet size={18} strokeWidth={1.5} color="#22D3EE" />
-              </div>
-              <h3 className="outfit" style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px', marginBottom: 10, lineHeight: 1.2 }}>
-                Jaminan Pembayaran Otomatis
-              </h3>
-              <p style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--secondary)', marginBottom: 20 }}>
-                Dana klien masuk ke rekening bersama Gawe <em>sebelum</em> kamu mulai kerja. Bukan escrow yang rumit — ini sederhana dan aman.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                {['Klien bayar dulu', 'Kamu kerja tenang', 'Dana cair otomatis'].map((s, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--secondary)' }}>
-                    <CheckCircle2 size={13} strokeWidth={1.5} color="#22D3EE" />
-                    {s}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Komisi — col 10-12 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-            className="card"
-            style={{ gridColumn: 'span 3', padding: 28 }}
-          >
-            <div style={{ position: 'relative' }}>
-              <span className="tag" style={{ background: 'rgba(79,110,247,0.06)', color: '#4F6EF7', border: '1px solid rgba(79,110,247,0.12)', marginBottom: 16, display: 'inline-flex' }}>
-                Komisi
-              </span>
-              <div className="outfit mono" style={{ fontSize: 64, fontWeight: 800, letterSpacing: '-4px', lineHeight: 1, color: 'white', marginBottom: 12 }}>
-                10<span style={{ fontSize: 28, color: 'var(--muted)', fontWeight: 500 }}>%</span>
-              </div>
-              <p style={{ fontSize: 12, lineHeight: 1.65, color: 'var(--secondary)' }}>
-                Potongan 10%—bukan buat kita kaya, tapi buat mastiin pembayaranmu aman via Escrow dan urusan invoice beres otomatis.
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Proyek mikro — col 6-8 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="card"
-            style={{ gridColumn: 'span 4', padding: 28 }}
-          >
-            <div style={{ position: 'relative' }}>
-              <div style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                <Zap size={18} strokeWidth={1.5} color="#8B5CF6" />
-              </div>
-              <h3 className="outfit" style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px', marginBottom: 10, lineHeight: 1.2 }}>
-                Proyek Mikro<br />Mulai Rp100rb
-              </h3>
-              <p style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--secondary)', marginBottom: 16 }}>
-                Sempurna untuk UMKM yang butuh hasil cepat, dan freelancer yang butuh pengalaman nyata.
-              </p>
-              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
-                {['Logo', 'Caption', 'Data Entry', 'Video', 'Terjemahan'].map((t, i) => (
-                  <span key={i} style={{ fontSize: 10, padding: '3px 8px', borderRadius: 4, backgroundColor: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.12)', color: '#8B5CF6', fontWeight: 600 }}>{t}</span>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Anti-zonk — col 9-12 */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className="card"
-            style={{ gridColumn: 'span 3', padding: 28 }}
-          >
-            <div style={{ position: 'relative' }}>
-              <div style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-                <Lock size={18} strokeWidth={1.5} color="#10B981" />
-              </div>
-              <h3 className="outfit" style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px', marginBottom: 10, lineHeight: 1.2 }}>
-                Anti-Zonk<br />untuk Klien
-              </h3>
-              <p style={{ fontSize: 13, lineHeight: 1.7, color: 'var(--secondary)' }}>
-                Hire freelancer yang sudah lulus Skill Test. Bukan yang cuma modal janji.
-              </p>
-            </div>
-          </motion.div>
-
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ── */}
-      <section id="cara-kerja" style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(255,255,255,0.01)' }}>
-        <div className="how-section-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px' }}>
-          <div className="how-grid" style={{ display: 'grid', gridTemplateColumns: '360px 1fr', gap: 80, alignItems: 'start' }}>
-            <div className="how-sticky" style={{ position: 'sticky', top: 100 }}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <span className="tag" style={{ background: 'rgba(34,211,238,0.06)', border: '1px solid rgba(34,211,238,0.12)', color: '#22D3EE', marginBottom: 20, display: 'inline-flex' }}>
-                  Cara Kerja
-                </span>
-                <h2 className="outfit" style={{ fontSize: 'clamp(36px, 3.5vw, 50px)', fontWeight: 800, letterSpacing: '-2.5px', lineHeight: 1.0, marginBottom: 16 }}>
-                  Dari daftar ke bayaran pertama.
-                </h2>
-                <p style={{ fontSize: 15, color: 'var(--secondary)', lineHeight: 1.7 }}>
-                  Tiga langkah yang jelas. Tanpa ribet, tanpa drama.
-                </p>
-              </motion.div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {STEPS.map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                  className="card"
-                  style={{ padding: 28 }}
-                >
-                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: step.color, borderRadius: '16px 0 0 16px' }} />
-                  <div style={{ display: 'flex', gap: 20 }}>
-                    <div style={{ flexShrink: 0 }}>
-                      <span className="outfit mono" style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-3px', lineHeight: 1, color: step.color, opacity: 0.18, display: 'block', marginBottom: 8 }}>
-                        {step.num}
-                      </span>
-                      <div style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: `${step.color}12`, border: `1px solid ${step.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {step.icon}
-                      </div>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <h3 className="outfit" style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.5px', marginBottom: 8 }}>{step.title}</h3>
-                      <p style={{ fontSize: 14, color: 'var(--secondary)', lineHeight: 1.75, marginBottom: 14 }}>{step.desc}</p>
-                      <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 5,
-                        fontSize: 12, fontWeight: 600, color: step.color,
-                        backgroundColor: `${step.color}08`,
-                        border: `1px solid ${step.color}15`,
-                        padding: '5px 10px', borderRadius: 5,
-                      }}>
-                        <ChevronRight size={12} strokeWidth={2} />
-                        {step.result}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+              {['Skill test per kategori, hasil instan', "Badge 'Identitas terverifikasi'", 'Trust Score tampil besar di profil'].map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, fontSize: 14, color: C.textMuted }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.primary, flexShrink: 0 }} />{s}
+                </div>
               ))}
             </div>
+            <TiltCard style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 24, boxShadow: SH }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <span style={{ fontSize: 14, fontWeight: 500, color: C.text }}>Profil Rizky Ananda</span>
+                <span style={{ background: C.primaryTint, color: C.primary, fontSize: 11, padding: '3px 8px', borderRadius: R.sm }}>✓ Terverifikasi</span>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 13, color: C.textMuted }}>Trust Score</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: C.primary }}>82/100</span>
+                </div>
+                <div style={{ background: C.primaryTint, borderRadius: 4, height: 6 }}>
+                  <div style={{ background: C.primary, width: '82%', height: 6, borderRadius: 4 }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {['UI Design 92', 'Figma 87'].map(t => (
+                  <span key={t} style={{ background: C.primaryTint, color: C.primary, fontSize: 12, padding: '4px 10px', borderRadius: R.sm }}>{t}</span>
+                ))}
+              </div>
+            </TiltCard>
+          </div>
+        </motion.div>
+
+        <PilarSeparator />
+
+        {/* Pilar 2 */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', marginBottom: 96 }}
+        >
+          <div className="pilar-grid" style={{ display: 'grid', gridTemplateColumns: '5fr 6fr', gap: 64, alignItems: 'center' }}>
+            <TiltCard style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 24, boxShadow: SH }}>
+              <p style={{ fontSize: 13, fontWeight: 500, color: C.text, marginBottom: 16 }}>Proyek mikro tersedia</p>
+              {[['Desain logo UMKM', 'Rp 350rb'], ['Konten Instagram 1 bulan', 'Rp 800rb'], ['Landing page sederhana', 'Rp 1,2jt']].map(([n, p], i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: i < 2 ? `0.5px solid ${C.border}` : 'none', fontSize: 14 }}>
+                  <span style={{ color: C.text }}>{n}</span>
+                  <span style={{ color: C.primary, fontWeight: 600 }}>{p}</span>
+                </div>
+              ))}
+            </TiltCard>
+            <div>
+              <span style={{ background: C.primaryTint, color: C.primary, fontSize: 12, fontWeight: 500, padding: '5px 12px', borderRadius: R.sm, display: 'inline-block', marginBottom: 16 }}>02 — Micro-project Marketplace</span>
+              <h3 className="outfit" style={{ fontSize: 24, fontWeight: 700, color: C.text, marginBottom: 12 }}>Proyek kecil, langkah besar</h3>
+              <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, marginBottom: 20 }}>
+                Proyek Rp 100rb–5jt yang dikurasi khusus untuk membangun reputasi tanpa risiko besar.
+              </p>
+              {['Smart matching by skill & trust score', 'Escrow protection di setiap transaksi', 'Review otomatis tiap proyek selesai'].map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, fontSize: 14, color: C.textMuted }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.primary, flexShrink: 0 }} />{s}
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        <PilarSeparator />
+
+        {/* Pilar 3 */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}
+        >
+          <div className="pilar-grid" style={{ display: 'grid', gridTemplateColumns: '6fr 5fr', gap: 64, alignItems: 'center' }}>
+            <div>
+              <span style={{ background: C.primaryTint, color: C.primary, fontSize: 12, fontWeight: 500, padding: '5px 12px', borderRadius: R.sm, display: 'inline-block', marginBottom: 16 }}>03 — Cashflow Clarity</span>
+              <h3 className="outfit" style={{ fontSize: 24, fontWeight: 700, color: C.text, marginBottom: 12 }}>Tahu uangmu ke mana</h3>
+              <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, marginBottom: 20 }}>
+                Dashboard cashflow dengan proyeksi 30/60/90 hari berdasarkan proyek aktif.
+              </p>
+              {['Chart pemasukan 6 bulan', 'Proyeksi pendapatan ke depan', 'Riwayat transaksi lengkap'].map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, fontSize: 14, color: C.textMuted }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.primary, flexShrink: 0 }} />{s}
+                </div>
+              ))}
+            </div>
+            <TiltCard style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 24, boxShadow: SH }}>
+              <p style={{ fontSize: 11, color: C.textTertiary, marginBottom: 4 }}>Pemasukan bulan ini</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                <span className="outfit" style={{ fontSize: 24, fontWeight: 700, color: C.text }}>Rp 3.250.000</span>
+                <span style={{ background: C.primaryTint, color: C.primary, fontSize: 11, padding: '3px 8px', borderRadius: R.sm }}>+12%</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 60 }}>
+                {[40, 55, 35, 70, 60, 100].map((h, i) => (
+                  <div key={i} style={{ flex: 1, height: `${h}%`, background: i < 4 ? C.primaryTint : C.primary, borderRadius: '4px 4px 0 0' }} />
+                ))}
+              </div>
+            </TiltCard>
+          </div>
+        </motion.div>
+      </motion.section>
+
+      {/* 7 — HOW IT WORKS */}
+      <motion.section id="cara-kerja" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
+        style={{ background: C.bgAlt, padding: '160px 0' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: C.primary, letterSpacing: '1.5px', marginBottom: 12, textTransform: 'uppercase' }}>Cara Kerja</p>
+          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 36, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 12 }}>
+            Dari daftar ke bayaran pertama — dalam hitungan hari.
+          </h2>
+          <p style={{ fontSize: 15, color: C.textMuted, marginBottom: 32 }}>Langkah yang jelas. Tanpa ribet, tanpa drama.</p>
+          <div style={{ display: 'inline-flex', background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.pill, padding: 4, gap: 4, marginBottom: 48 }}>
+            {(['freelancer', 'klien'] as const).map(tab => (
+              <button key={tab} onClick={() => setHowTab(tab)} style={{
+                borderRadius: R.pill, padding: '8px 24px', fontSize: 14, fontWeight: 500,
+                cursor: 'pointer', border: 'none', fontFamily: "'Work Sans',sans-serif",
+                transition: 'all 0.2s',
+                background: howTab === tab ? C.primary : 'transparent',
+                color: howTab === tab ? C.primaryTint : C.textMuted,
+              }}>
+                {tab === 'freelancer' ? 'Freelancer' : 'Klien / UMKM'}
+              </button>
+            ))}
+          </div>
+          <div style={{ position: 'relative', paddingLeft: 48 }}>
+            <div style={{ position: 'absolute', left: 16, top: 0, bottom: 0, width: 2, background: C.primaryBorder }} />
+            {steps.map((step, i) => (
+              <div
+                key={i}
+                style={{ position: 'relative', marginBottom: i < steps.length - 1 ? 48 : 0 }}
+                onMouseEnter={() => setHoveredStep(i)}
+                onMouseLeave={() => setHoveredStep(null)}
+              >
+                <div style={{ position: 'absolute', left: -48, width: 32, height: 32, borderRadius: '50%', background: C.primary, color: C.primaryTint, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, transition: 'transform 0.2s ease', transform: hoveredStep === i ? 'scale(1.1)' : 'scale(1)' }}>
+                  {i + 1}
+                </div>
+                <h3 className="outfit" style={{ fontSize: 18, fontWeight: 600, color: C.text, marginBottom: 8 }}>{step.title}</h3>
+                <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, marginBottom: 12 }}>{step.desc}</p>
+                <span style={{ background: hoveredStep === i ? C.primaryBorder : C.primaryTint, color: '#26215C', fontSize: 12, fontWeight: 500, padding: '5px 14px', borderRadius: R.pill, display: 'inline-block', borderLeft: `2px solid ${C.primary}`, transition: 'background 0.2s ease' }}>
+                  {step.hl}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* 8 — KOMISI */}
+      <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
+        style={{ background: '#EFEDFB' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '160px 32px' }}>
+          <div className="komisi-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 48, alignItems: 'start' }}>
+            <div>
+              <span style={{ background: C.primaryTint, color: C.primary, fontSize: 11, fontWeight: 600, letterSpacing: '1px', padding: '5px 12px', borderRadius: R.sm, display: 'inline-block', marginBottom: 24, textTransform: 'uppercase' }}>Biaya Platform</span>
+              <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 32, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 16 }}>
+                Gratis untuk daftar. Bayar hanya kalau kamu sudah dapat bayaran.
+              </h2>
+              <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, marginBottom: 24 }}>
+                Komisi 10% dipotong otomatis dari pembayaran saat proyek selesai. Tidak ada biaya bulanan, tidak ada biaya pendaftaran.
+              </p>
+              <p style={{ fontSize: 11, fontWeight: 600, color: C.textMuted, letterSpacing: '1px', marginBottom: 12, textTransform: 'uppercase' }}>Apa yang gratis selamanya:</p>
+              {['Buat profil dan skill test', 'Apply ke proyek & kirim proposal', 'Akses dashboard cashflow dasar', 'Generate invoice otomatis', 'Chat aman dengan klien', 'Review otomatis sistem'].map((s, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, fontSize: 14, color: C.textMuted }}>
+                  <CheckCircle size={16} strokeWidth={1.5} color={C.success} />{s}
+                </div>
+              ))}
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ background: C.primaryTint, border: `0.5px solid ${C.primaryBorder}`, borderRadius: R.lg, padding: 32, marginBottom: 24 }}>
+                <p className="outfit" style={{ fontSize: 64, fontWeight: 800, color: C.primary, lineHeight: 1 }}>10%</p>
+                <p style={{ fontSize: 14, color: C.textMuted, marginBottom: 32 }}>dari nilai proyek</p>
+                <div style={{ borderTop: `0.5px solid ${C.primaryBorder}`, paddingTop: 24 }}>
+                  <div style={{ background: '#FFFFFF', borderRadius: 16, padding: 24, marginTop: 16 }}>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: '#8A87A8', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 16 }}>
+                      Hitung sendiri
+                    </p>
+                    <input
+                      type="range"
+                      min={100000}
+                      max={5000000}
+                      step={50000}
+                      value={projectValue}
+                      onChange={(e) => setProjectValue(Number(e.target.value))}
+                      style={{ width: '100%', marginBottom: 12, accentColor: '#534AB7' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#8A87A8', marginBottom: 24 }}>
+                      <span>Rp 100rb</span>
+                      <span>Nilai proyek: Rp {projectValue.toLocaleString('id-ID')}</span>
+                      <span>Rp 5jt</span>
+                    </div>
+                    <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                      <p style={{ fontSize: 13, color: '#8A87A8', marginBottom: 4 }}>Dengan 10% itu, kamu dapat:</p>
+                      <p style={{ fontSize: 32, fontWeight: 700, color: '#534AB7', fontFamily: 'var(--font-playfair),Georgia,serif', marginBottom: 4 }}>
+                        Rp {Math.round(projectValue * 0.9).toLocaleString('id-ID')} cair ke kamu
+                      </p>
+                      <p style={{ fontSize: 12, color: '#8A87A8' }}>
+                        (Rp {Math.round(projectValue * 0.1).toLocaleString('id-ID')} untuk jaga keamanan transaksi ini)
+                      </p>
+                    </div>
+                    <div style={{ background: '#F8F7FE', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {[
+                        { label: 'Escrow', desc: 'Dana ditahan aman sampai kamu selesai kerja' },
+                        { label: 'Invoice otomatis', desc: 'Tidak perlu bikin manual, langsung jadi' },
+                        { label: 'Mediasi gratis', desc: 'Kalau ada sengketa, tim Gawe bantu selesaikan' },
+                      ].map((item, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                          <span style={{ color: '#10B981', fontSize: 14, marginTop: 2 }}>✓</span>
+                          <div>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: '#26215C', marginBottom: 2 }}>{item.label}</p>
+                            <p style={{ fontSize: 12, color: '#8A87A8', margin: 0 }}>{item.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {FAQ.map((item, i) => {
+                const isActive = openFaq === i
+                return (
+                  <div key={i} style={{
+                    background: isActive ? '#FFFFFF' : 'transparent',
+                    border: isActive ? '1px solid #CECBF6' : '1px solid transparent',
+                    borderRadius: 12,
+                    boxShadow: isActive ? '0 8px 24px rgba(83,74,183,0.08)' : 'none',
+                    padding: '16px 20px',
+                    marginBottom: 8,
+                    transition: 'background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
+                  }}>
+                    <button onClick={() => setOpenFaq(isActive ? null : i)}
+                      style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: "'Work Sans',sans-serif", textAlign: 'left' }}>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: C.text }}>{item.q}</span>
+                      <ChevronDown size={16} color={C.textMuted} style={{ transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', flexShrink: 0, marginLeft: 12 }} />
+                    </button>
+                    <div style={{ maxHeight: isActive ? 200 : 0, overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
+                      <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.7, marginTop: 8 }}>{item.a}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* 9 — TESTIMONI */}
+      <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
+        style={{ background: C.bg }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '160px 32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 32, fontWeight: 700, color: C.text, letterSpacing: '-0.5px' }}>Mereka juga pernah di posisimu.</h2>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => testimoniScrollRef.current?.scrollBy({ left: -400, behavior: 'smooth' })}
+                style={{ width: 44, height: 44, borderRadius: '50%', background: '#FFFFFF', border: '1px solid #E5E3F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s ease' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F8F7FE' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF' }}
+              >
+                <ChevronLeft size={18} color={C.text} />
+              </button>
+              <button
+                onClick={() => testimoniScrollRef.current?.scrollBy({ left: 400, behavior: 'smooth' })}
+                style={{ width: 44, height: 44, borderRadius: '50%', background: '#FFFFFF', border: '1px solid #E5E3F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s ease' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F8F7FE' }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF' }}
+              >
+                <ChevronRight size={18} color={C.text} />
+              </button>
+            </div>
+          </div>
+          <p style={{ fontSize: 13, fontWeight: 500, color: C.textMuted, letterSpacing: '0.5px', marginBottom: 48 }}>
+            Bukan bintang lima generik — ini orang beneran, dengan masalah yang beneran.
+          </p>
+          <div
+            ref={testimoniScrollRef}
+            className="testimoni-scroll"
+            style={{ display: 'flex', gap: 24, overflowX: 'auto', scrollSnapType: 'x mandatory', paddingBottom: 8, paddingRight: 32, scrollBehavior: 'smooth' }}
+          >
+            {[
+              { q: 'Saya daftar Senin sore, ambil skill test, dan Rabu pagi sudah dapat proyek pertama. Kecil, tapi dari situ portofolio saya mulai ada isinya.', init: 'R', iBg: C.primaryTint, iC: C.primary, name: 'Rizky A.', age: '23', detail: 'UI Designer · Bandung', badge: 'Trust Score 84', bBg: C.primaryTint, bC: C.primary },
+              { q: 'Yang saya suka dari Gawe tuh dashboard cashflow-nya. Sebelumnya saya cuma bisa nebak-nebak bulan depan aman atau nggak. Sekarang ada proyeksinya.', init: 'D', iBg: C.coralTint, iC: C.coral, name: 'Dina M.', age: '29', detail: 'Content Writer · Jakarta', badge: '12 Proyek', bBg: C.successTint, bC: C.success },
+              { q: 'Saya sudah tiga kali kena ghosting di platform lain. Di Gawe, freelancer yang saya pilih kasih update setiap hari dan hasilnya melampaui ekspektasi.', init: 'B', iBg: C.successTint, iC: C.success, name: 'Budi S.', age: '36', detail: 'Pemilik UMKM · Surabaya', badge: '', bBg: '', bC: '' },
+              { q: 'Saya karyawan yang mau mulai side hustle. Gawe ada rate calculator-nya, proyeknya bisa dikerjain dalam 2–3 hari tanpa ganggu kerjaan utama.', init: 'S', iBg: C.bgAlt, iC: C.textMuted, name: 'Sari W.', age: '31', detail: 'Freelance Translator · Yogyakarta', badge: '', bBg: '', bC: '' },
+            ].map((t, i) => (
+              <TiltCard
+                key={i}
+                style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 28, boxShadow: SH, scrollSnapAlign: 'start', minWidth: 340, maxWidth: 'calc(100vw - 64px)', flexShrink: 0 }}
+              >
+                <p style={{ fontSize: 15, fontStyle: 'italic', color: C.text, lineHeight: 1.7, marginBottom: 20 }}>"{t.q}"</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: t.iBg, color: t.iC, border: `0.5px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
+                    {t.init}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{t.name}</span>
+                      <span style={{ fontSize: 12, color: C.textMuted }}>{t.age}</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>{t.detail}</p>
+                  </div>
+                  {t.badge && <span style={{ background: t.bBg, color: t.bC, fontSize: 11, padding: '3px 8px', borderRadius: R.sm, flexShrink: 0 }}>{t.badge}</span>}
+                </div>
+              </TiltCard>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* 10 — DUAL CTA */}
+      <motion.section id="dual-cta" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
+        style={{ background: C.bgAlt }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '160px 32px' }}>
+          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 36, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', textAlign: 'center', marginBottom: 48 }}>
+            Kamu tidak butuh pengalaman dulu.<br />Kamu butuh kesempatan pertama.
+          </h2>
+          <div className="dual-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            <TiltCard style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 32, borderTop: `3px solid ${C.primary}`, boxShadow: SH }}>
+              <span style={{ background: C.primaryTint, color: C.primary, fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: R.sm, display: 'inline-block', marginBottom: 16, textTransform: 'uppercase' }}>Untuk Freelancer</span>
+              <h3 className="outfit" style={{ fontSize: 20, fontWeight: 600, color: C.text, marginBottom: 8 }}>Untuk freelancer pemula</h3>
+              <p style={{ fontSize: 14, color: C.textMuted, marginBottom: 20, lineHeight: 1.6 }}>Skill ada, portofolio belum ada? Trust Score kamu dimulai dari hari ini — bukan dari proyek pertama.</p>
+              {['Trust Score menggantikan portofolio', 'Komisi 10% — invoice + jaminan + mediasi', 'Jaminan Pembayaran setiap proyek', 'Dashboard cashflow real-time'].map((f, j) => (
+                <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: C.textMuted, marginBottom: 10 }}>
+                  <CheckCircle size={14} strokeWidth={1.5} color={C.primary} />{f}
+                </div>
+              ))}
+              <Link href="/auth/daftar"
+                style={{ background: C.primary, color: C.primaryTint, borderRadius: R.pill, padding: '12px 24px', fontWeight: 500, fontSize: 14, textDecoration: 'none', display: 'block', textAlign: 'center', marginTop: 24, transition: 'transform 0.15s ease, opacity 0.15s ease' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
+                Mulai sebagai freelancer →
+              </Link>
+            </TiltCard>
+            <TiltCard style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 32, borderTop: `3px solid ${C.success}`, boxShadow: SH }}>
+              <span style={{ background: C.successTint, color: C.success, fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: R.sm, display: 'inline-block', marginBottom: 16, textTransform: 'uppercase' }}>Untuk Klien & UMKM</span>
+              <h3 className="outfit" style={{ fontSize: 20, fontWeight: 600, color: C.text, marginBottom: 8 }}>Untuk klien & UMKM</h3>
+              <p style={{ fontSize: 14, color: C.textMuted, marginBottom: 20, lineHeight: 1.6 }}>Bingung cara bedain yang beneran bisa kerja dari yang cuma janji? Trust Score dan escrow kami yang seleksi.</p>
+              {['Post proyek mulai Rp100rb', 'Freelancer lulus Skill Test & KYC', 'Bayar hanya setelah hasil disetujui', 'Mediasi gratis jika ada perselisihan'].map((f, j) => (
+                <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: C.textMuted, marginBottom: 10 }}>
+                  <CheckCircle size={14} strokeWidth={1.5} color={C.success} />{f}
+                </div>
+              ))}
+              <Link href="/auth/daftar"
+                style={{ background: C.text, color: C.bg, borderRadius: R.pill, padding: '12px 24px', fontWeight: 500, fontSize: 14, textDecoration: 'none', display: 'block', textAlign: 'center', marginTop: 24, transition: 'transform 0.15s ease, opacity 0.15s ease' }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
+                Post Proyek Sekarang →
+              </Link>
+            </TiltCard>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* 11 — FINAL CTA */}
+      <section style={{ position: 'relative', overflow: 'hidden', background: C.meshBase, padding: '160px 32px', textAlign: 'center' }}>
+        <div style={{ position: 'absolute', top: '-20%', right: '-20%', bottom: '-20%', left: '-20%', background: mesh, filter: 'blur(40px)' }} />
+        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'linear-gradient(180deg,rgba(15,12,46,0) 0%,rgba(15,12,46,0.3) 100%)' }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 640, margin: '0 auto' }}>
+          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 48, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.5px', marginBottom: 0 }}>Gratis untuk daftar.</h2>
+          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 32, fontWeight: 500, color: '#CECBF6', letterSpacing: '-0.5px', marginBottom: 20 }}>Bayar hanya kalau kamu sudah dapat bayaran.</h2>
+          <p style={{ fontSize: 16, color: '#AFA9EC', marginBottom: 40, lineHeight: 1.7 }}>
+            Daftar sekarang. Tanpa kartu kredit. Kamu bisa mulai buat profil dalam 10 menit dan langsung terlihat oleh ratusan klien hari ini.
+          </p>
+          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/auth/daftar"
+              style={{ background: '#FFFFFF', color: C.text, borderRadius: R.pill, padding: '14px 32px', fontWeight: 600, fontSize: 15, textDecoration: 'none', transition: 'transform 0.15s ease, opacity 0.15s ease', display: 'inline-block' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
+              Yuk mulai Gawe →
+            </Link>
+            <a href="/proyek"
+              style={{ background: 'transparent', color: '#FFFFFF', border: '0.5px solid rgba(255,255,255,0.3)', borderRadius: R.pill, padding: '14px 32px', fontSize: 15, textDecoration: 'none', transition: 'transform 0.15s ease, opacity 0.15s ease', display: 'inline-block' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
+              Cari freelancer
+            </a>
           </div>
         </div>
       </section>
 
-      {/* ── DUAL CTA ── */}
-      <section className="dual-cta-section" style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          style={{ textAlign: 'center', marginBottom: 56 }}
-        >
-          <h2 className="outfit" style={{ fontSize: 'clamp(36px, 4vw, 52px)', fontWeight: 800, letterSpacing: '-2.5px', lineHeight: 1.0 }}>
-            Gawe untuk semua pihak.
-          </h2>
-        </motion.div>
-
-        <div className="dual-cta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {[
-            {
-              tag: 'Untuk Freelancer', tagColor: '#4F6EF7', tagBg: 'rgba(79,110,247,0.06)', tagBorder: 'rgba(79,110,247,0.12)',
-              topBar: '#4F6EF7',
-              title: 'Kerjamu dihargai.\nDari proyek pertama.',
-              desc: 'Tidak perlu portofolio. Tidak perlu bertahun-tahun pengalaman. Cukup skill dan 2 menit untuk daftar.',
-              features: ['Trust Score menggantikan portofolio', 'Komisi 10% — invoice + jaminan + mediasi', 'Jaminan Pembayaran setiap proyek', 'Dashboard cashflow real-time'],
-              cta: 'Mulai Cari Kerja', ctaHref: '/auth/daftar',
-              ctaStyle: { background: '#4F6EF7', color: 'white' },
-              checkColor: '#4F6EF7',
-            },
-            {
-              tag: 'Untuk Klien & UMKM', tagColor: '#22D3EE', tagBg: 'rgba(34,211,238,0.06)', tagBorder: 'rgba(34,211,238,0.12)',
-              topBar: '#22D3EE',
-              title: 'Hire yang sudah lulus\nSkill Test. Anti-zonk.',
-              desc: 'Bukan yang cuma modal janji. Setiap freelancer di Gawe sudah terverifikasi skill dan identitasnya.',
-              features: ['Post proyek mulai Rp100rb', 'Freelancer lulus Skill Test & KYC', 'Bayar hanya setelah hasil disetujui', 'Mediasi gratis jika ada perselisihan'],
-              cta: 'Post Proyek Sekarang', ctaHref: '/klien/post-proyek',
-              ctaStyle: { background: '#22D3EE', color: '#0A0E1A' },
-              checkColor: '#22D3EE',
-            },
-          ].map((card, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="card"
-              style={{ padding: 40 }}
-            >
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: card.topBar }} />
-              <div style={{ position: 'relative' }}>
-                <span className="tag" style={{ background: card.tagBg, color: card.tagColor, border: `1px solid ${card.tagBorder}`, marginBottom: 24, display: 'inline-flex' }}>
-                  {card.tag}
-                </span>
-                <h3 className="outfit" style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-1.5px', marginBottom: 12, lineHeight: 1.1, whiteSpace: 'pre-line' }}>
-                  {card.title}
-                </h3>
-                <p style={{ fontSize: 14, color: 'var(--secondary)', lineHeight: 1.75, marginBottom: 24 }}>{card.desc}</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 }}>
-                  {card.features.map((f, j) => (
-                    <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14, color: 'rgba(255,255,255,0.72)' }}>
-                      <CheckCircle2 size={13} strokeWidth={1.5} color={card.checkColor} />
-                      {f}
-                    </div>
-                  ))}
-                </div>
-                <Link href={card.ctaHref} className="btn-primary" style={{ ...card.ctaStyle }}>
-                  {card.cta} <ArrowRight size={13} strokeWidth={2} />
-                </Link>
+      {/* 12 — FOOTER */}
+      <footer style={{ background: '#26215C', padding: '48px 32px 32px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div className="footer-cols" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48, marginBottom: 48 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 7, height: 7, borderRadius: '50%', background: C.primary }} />
+                <span className="outfit" style={{ fontSize: 18, fontWeight: 700, color: '#FFFFFF' }}>Gawe.</span>
               </div>
-            </motion.div>
-          ))}
+              <p style={{ fontSize: 13, color: '#AFA9EC', lineHeight: 1.7 }}>
+                Platform freelance untuk yang baru mulai. Kami percaya setiap orang berhak dapat kesempatan pertama.
+              </p>
+            </div>
+            {[
+              { heading: 'PRODUK', links: [['Cara Kerja', '#cara-kerja'], ['Proyek', '/proyek'], ['Harga', '#komisi'], ['Fitur', '#fitur']] },
+              { heading: 'PERUSAHAAN', links: [['Tentang', '/tentang'], ['Blog', '/blog'], ['Karir', '/karir'], ['Kontak', '/kontak']] },
+              { heading: 'LEGAL', links: [['Privasi', '/privasi'], ['Syarat & Ketentuan', '/syarat'], ['Keamanan', '/keamanan']] },
+            ].map(col => (
+              <div key={col.heading}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#FFFFFF', letterSpacing: '1.5px', marginBottom: 16 }}>{col.heading}</p>
+                {col.links.map(([label, href]) => (
+                  <a key={label} href={href} style={{ fontSize: 13, color: '#AFA9EC', display: 'block', marginBottom: 10, textDecoration: 'none' }}>{label}</a>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div style={{ borderTop: '0.5px solid rgba(255,255,255,0.1)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <span style={{ fontSize: 12, color: '#6B6885' }}>© 2026 Gawe · Dibuat dengan semangat di Indonesia 🇮🇣</span>
+            <span style={{ fontSize: 12, color: '#6B6885' }}>Instagram · LinkedIn · Twitter</span>
+          </div>
         </div>
-      </section>
-
-      {/* ── FINAL CTA ── */}
-      <section style={{ borderTop: '1px solid var(--border)' }}>
-        <div className="final-cta-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '140px 32px', textAlign: 'center' }}>
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <h2 className="outfit" style={{ fontSize: 'clamp(44px, 6vw, 80px)', fontWeight: 900, letterSpacing: '-4px', lineHeight: 0.95, marginBottom: 24 }}>
-            Freelancer pertamamu<br />
-            <span style={{ color: '#22D3EE' }}>menunggu di Gawe.</span>
-          </h2>
-          <p style={{ color: 'var(--secondary)', fontSize: 17, marginBottom: 44, maxWidth: 420, margin: '0 auto 44px', lineHeight: 1.7 }}>
-            Gratis selamanya untuk daftar. Komisi hanya saat proyekmu selesai dan kamu sudah dibayar.
-          </p>
-          <Link href="/auth/daftar" className="btn-primary" style={{ padding: '15px 40px', fontSize: 16 }}>
-            Daftar Sekarang — Gratis <ArrowRight size={16} strokeWidth={2} />
-          </Link>
-          <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 16 }}>
-            Sudah punya akun?{' '}
-            <Link href="/auth/masuk" style={{ color: '#4F6EF7', textDecoration: 'none', fontWeight: 600 }}>Masuk di sini</Link>
-          </p>
-        </motion.div>
-        </div>
-      </section>
-
-      {/* ── FOOTER ── */}
-      <footer style={{ borderTop: '1px solid var(--border)' }}>
-      <div className="footer-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#22D3EE' }} />
-          <span className="outfit" style={{ fontSize: 16, fontWeight: 800 }}>Gawe</span>
-        </div>
-        <span style={{ fontSize: 12, color: 'var(--muted)' }}>© 2026 Gawe — Platform freelance untuk pemula Indonesia</span>
-        <div style={{ display: 'flex', gap: 20 }}>
-          {[['Daftar', '/auth/daftar'], ['Proyek', '/app/jelajah'], ['Post Proyek', '/klien/post-proyek']].map(([l, h]) => (
-            <Link key={l} href={h} style={{ color: 'var(--muted)', textDecoration: 'none', fontSize: 13 }}>{l}</Link>
-          ))}
-        </div>
-      </div>
       </footer>
     </div>
   )

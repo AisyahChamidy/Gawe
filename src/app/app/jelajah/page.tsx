@@ -3,8 +3,13 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
-import { Clock, Users } from 'lucide-react'
+import { Clock, Users, Search } from 'lucide-react'
 import { calculateMatchScore } from '@/utils/matchScore'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
+
+const STATUS_RED   = '#EF4444'
 
 const KATEGORI = ['Semua','Desain Grafis','Web Development','Social Media','Penulisan Konten','Video Editing','UI/UX Design','Terjemahan','Data Entry','Lainnya']
 type Project = { id: string; title: string; description: string; category: string; budget_min: number; budget_max: number; estimated_days: number; skills_required: string[]; created_at: string }
@@ -12,17 +17,17 @@ const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', c
 
 function MatchBadge({ score }: { score: number }) {
   if (score >= 85) return (
-    <span style={{ background: 'rgba(34,211,238,0.15)', border: '1px solid rgba(34,211,238,0.3)', color: '#22D3EE', borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
-      ✨ {score}% Cocok
+    <span style={{ background: C.primary, color: 'white', borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+      {score}% Cocok
     </span>
   )
   if (score >= 70) return (
-    <span style={{ background: 'rgba(79,110,247,0.15)', border: '1px solid rgba(79,110,247,0.3)', color: '#4F6EF7', borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+    <span style={{ background: C.primaryTint, border: `1px solid ${C.primaryBorder}`, color: C.primary, borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
       {score}% Cocok
     </span>
   )
   return (
-    <span style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)', borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+    <span style={{ background: C.bgLavenderSoft, border: `1px solid ${C.border}`, color: C.textMuted, borderRadius: '8px', padding: '4px 10px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>
       {score}% Cocok
     </span>
   )
@@ -162,8 +167,9 @@ export default function JelajahPage() {
   }
 
   const inp: React.CSSProperties = {
-    width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: '8px', padding: '12px', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+    width: '100%', background: C.bgWhite, border: `1px solid ${C.border}`,
+    borderRadius: R.sm, padding: '12px', color: C.textDark, fontSize: '14px',
+    outline: 'none', boxSizing: 'border-box', fontFamily: theme.fonts.body,
   }
 
   const clampStyle: React.CSSProperties = {
@@ -174,42 +180,61 @@ export default function JelajahPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
       <style>{`
-        @media (max-width: 640px) {
-          .filter-scroll { flex-wrap: nowrap !important; overflow-x: auto !important; padding-bottom: 4px; }
-          .filter-scroll::-webkit-scrollbar { display: none; }
-        }
-        .modal-textarea::placeholder { color: rgba(255,255,255,0.3); }
-        .modal-input::placeholder { color: rgba(255,255,255,0.3); }
+        .pill-scroll { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+        .pill-scroll::-webkit-scrollbar { display: none; }
+        .modal-textarea::placeholder { color: ${C.textTertiary}; }
+        .modal-input::placeholder { color: ${C.textTertiary}; }
       `}</style>
       <Navbar />
       <div style={{ padding: 'clamp(20px, 5vw, 40px) clamp(16px, 4vw, 32px)', maxWidth: '900px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>Jelajah Proyek</h1>
-        <p style={{ color: '#8892a4', marginBottom: '24px' }}>{loading ? 'Memuat...' : filtered.length + ' proyek tersedia'}</p>
+        <h1 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '8px', color: C.textDark, fontFamily: theme.fonts.headline }}>Jelajah Proyek</h1>
+        <p style={{ color: C.textMuted, marginBottom: '24px', fontSize: '14px' }}>{loading ? 'Memuat...' : filtered.length + ' proyek tersedia'}</p>
 
         {/* Filter panel */}
-        <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+        <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px', marginBottom: '24px', boxShadow: theme.shadow.card }}>
+          {/* Search bar */}
           <input type="text" placeholder="Cari proyek atau skill..." value={search} onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '10px 14px', backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white', fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }} />
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div className="filter-scroll" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: 1 }}>
+            style={{ width: '100%', padding: '10px 14px', backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, borderRadius: R.sm, color: C.textDark, fontSize: '14px', outline: 'none', boxSizing: 'border-box', marginBottom: '20px' }} />
+
+          {/* Kategori */}
+          <div style={{ fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: C.textMuted, fontWeight: 600, marginBottom: '8px' }}>
+            Kategori
+          </div>
+          <div style={{ position: 'relative', marginBottom: '20px' }}>
+            <div className="pill-scroll" style={{ display: 'flex', gap: '6px', overflowX: 'auto', flexWrap: 'nowrap' }}>
               {KATEGORI.map(k => (
                 <button key={k} onClick={() => setKategori(k)}
-                  style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', border: '1px solid', borderColor: kategori === k ? '#4F6EF7' : '#1e2d4a', backgroundColor: kategori === k ? 'rgba(79,110,247,0.2)' : 'transparent', color: kategori === k ? '#4F6EF7' : '#8892a4' }}>
+                  style={{
+                    padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer',
+                    border: '1px solid', flexShrink: 0, whiteSpace: 'nowrap',
+                    borderColor: kategori === k ? C.primary : C.primaryBorder,
+                    backgroundColor: kategori === k ? C.primary : 'transparent',
+                    color: kategori === k ? 'white' : C.textMuted,
+                    fontFamily: theme.fonts.body,
+                  }}>
                   {k}
                 </button>
               ))}
             </div>
+            <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '48px', background: `linear-gradient(to right, transparent, ${C.bgWhite})`, pointerEvents: 'none', zIndex: 1 }} />
+          </div>
+
+          {/* Urutkan & Budget */}
+          <div style={{ fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: C.textMuted, fontWeight: 600, marginBottom: '8px' }}>
+            Urutkan & Budget
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             <select value={budgetMax} onChange={e => setBudgetMax(Number(e.target.value))}
-              style={{ backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '6px', color: 'white', padding: '4px 8px', fontSize: '12px', cursor: 'pointer' }}>
+              style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.sm, color: C.textDark, padding: '6px 10px', fontSize: '13px', cursor: 'pointer' }}>
               <option value={500000}>Maks Rp500rb</option>
               <option value={1000000}>Maks Rp1jt</option>
               <option value={2000000}>Maks Rp2jt</option>
               <option value={5000000}>Maks Rp5jt</option>
             </select>
             <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-              style={{ backgroundColor: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '8px', color: 'white', padding: '8px 12px', fontSize: '14px', cursor: 'pointer' }}>
+              style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.sm, color: C.textDark, padding: '6px 10px', fontSize: '13px', cursor: 'pointer' }}>
               <option value="paling-cocok">Paling Cocok</option>
               <option value="terbaru">Terbaru</option>
               <option value="harga-tertinggi">Harga Tertinggi</option>
@@ -221,13 +246,15 @@ export default function JelajahPage() {
 
         {/* Project list */}
         {loading ? (
-          <div style={{ color: '#8892a4', textAlign: 'center', padding: '60px' }}>Memuat proyek...</div>
+          <div style={{ color: C.textMuted, textAlign: 'center', padding: '60px' }}>Memuat proyek...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '60px', textAlign: 'center', color: '#8892a4' }}>
-            <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
-            <p>Tidak ada proyek yang cocok.</p>
+          <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.lg, padding: '60px', textAlign: 'center', boxShadow: theme.shadow.card }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
+              <Search size={40} strokeWidth={1} color={C.textTertiary} />
+            </div>
+            <p style={{ color: C.textMuted }}>Tidak ada proyek yang cocok.</p>
             <button onClick={() => { setSearch(''); setKategori('Semua'); setBudgetMax(5000000) }}
-              style={{ marginTop: '12px', padding: '8px 16px', backgroundColor: '#4F6EF7', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+              style={{ marginTop: '12px', padding: '8px 16px', backgroundColor: C.primary, color: 'white', border: 'none', borderRadius: R.sm, cursor: 'pointer', fontSize: '13px', fontFamily: theme.fonts.body }}>
               Reset Filter
             </button>
           </div>
@@ -259,34 +286,35 @@ export default function JelajahPage() {
                   onMouseEnter={() => setHoveredId(project.id)}
                   onMouseLeave={() => setHoveredId(null)}
                   style={{
-                    background: isHovered ? 'rgba(79,110,247,0.04)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${isHovered ? 'rgba(79,110,247,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                    borderRadius: '16px',
+                    background: isHovered ? C.bgLavenderSoft : C.bgWhite,
+                    border: `1px solid ${isHovered ? C.primaryBorder : C.border}`,
+                    borderRadius: R.lg,
                     padding: '24px',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
+                    boxShadow: isHovered ? theme.shadow.hover : theme.shadow.card,
                   }}
                 >
                   {/* Top row: category + match badge + budget */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ background: 'rgba(79,110,247,0.12)', color: '#4F6EF7', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500 }}>
+                    <span style={{ background: C.primaryTint, color: C.primary, borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500 }}>
                       {project.category}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <MatchBadge score={matchScore} />
-                      <span style={{ fontSize: '15px', fontWeight: 700, color: '#22D3EE' }}>
+                      <span style={{ fontSize: '15px', fontWeight: 700, color: C.primary, fontFamily: theme.fonts.mono }}>
                         {fmt(project.budget_min)} – {fmt(project.budget_max)}
                       </span>
                     </div>
                   </div>
 
                   {/* Title */}
-                  <h2 style={{ fontSize: '17px', fontWeight: 600, color: 'white', margin: '0 0 6px', ...clampStyle }}>
+                  <h2 style={{ fontSize: '17px', fontWeight: 600, color: C.textDark, margin: '0 0 6px', ...clampStyle }}>
                     {project.title}
                   </h2>
 
                   {/* Description */}
-                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: '0 0 14px', lineHeight: '1.6', ...clampStyle }}>
+                  <p style={{ fontSize: '13px', color: C.textMuted, margin: '0 0 14px', lineHeight: '1.6', ...clampStyle }}>
                     {project.description}
                   </p>
 
@@ -300,9 +328,9 @@ export default function JelajahPage() {
                         )
                         return (
                           <span key={skill} style={{
-                            background: matched ? 'rgba(34,211,238,0.1)' : 'rgba(255,255,255,0.06)',
-                            color: matched ? '#22D3EE' : 'rgba(255,255,255,0.6)',
-                            border: matched ? '1px solid rgba(34,211,238,0.25)' : 'none',
+                            background: matched ? C.primaryTint : C.bgLavenderSoft,
+                            color: matched ? C.primary : C.textMuted,
+                            border: matched ? `1px solid ${C.primaryBorder}` : `1px solid ${C.border}`,
                             borderRadius: '6px', padding: '3px 8px', fontSize: '11px',
                           }}>
                             {skill}
@@ -310,7 +338,7 @@ export default function JelajahPage() {
                         )
                       })}
                       {extraSkills > 0 && (
-                        <span style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px' }}>
+                        <span style={{ background: C.bgLavenderSoft, color: C.textMuted, border: `1px solid ${C.border}`, borderRadius: '6px', padding: '3px 8px', fontSize: '11px' }}>
                           +{extraSkills} lagi
                         </span>
                       )}
@@ -320,21 +348,22 @@ export default function JelajahPage() {
                   {/* Bottom row: meta + button */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <Clock size={13} strokeWidth={1.5} color="rgba(255,255,255,0.4)" />
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>{project.estimated_days} hari</span>
-                      <span style={{ display: 'inline-block', width: '3px', height: '3px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', margin: '0 2px' }} />
-                      <Users size={13} strokeWidth={1.5} color="rgba(255,255,255,0.4)" />
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>{pelamar} pelamar</span>
+                      <Clock size={13} strokeWidth={1.5} color={C.textMuted} />
+                      <span style={{ fontSize: '12px', color: C.textMuted }}>{project.estimated_days} hari</span>
+                      <span style={{ display: 'inline-block', width: '3px', height: '3px', borderRadius: '50%', background: C.border, margin: '0 2px' }} />
+                      <Users size={13} strokeWidth={1.5} color={C.textMuted} />
+                      <span style={{ fontSize: '12px', color: C.textMuted }}>{pelamar} pelamar</span>
                     </div>
                     <button
                       onClick={e => { e.stopPropagation(); if (!sudahDilamar && !sedangMelamar) openModal(project) }}
                       disabled={sudahDilamar || sedangMelamar}
                       style={{
-                        background: sudahDilamar ? 'transparent' : '#4F6EF7',
-                        color: sudahDilamar ? 'rgba(255,255,255,0.5)' : 'white',
-                        border: sudahDilamar ? '1px solid rgba(255,255,255,0.2)' : 'none',
-                        borderRadius: '8px', padding: '8px 18px', fontSize: '13px',
+                        background: sudahDilamar ? 'transparent' : C.primary,
+                        color: sudahDilamar ? C.textMuted : 'white',
+                        border: sudahDilamar ? `1px solid ${C.border}` : 'none',
+                        borderRadius: R.sm, padding: '8px 18px', fontSize: '13px',
                         fontWeight: 500, cursor: sudahDilamar ? 'default' : 'pointer', flexShrink: 0,
+                        fontFamily: theme.fonts.body,
                       }}>
                       {sedangMelamar ? 'Mengirim...' : sudahDilamar ? '✓ Sudah Dilamar' : 'Lamar Proyek'}
                     </button>
@@ -350,14 +379,14 @@ export default function JelajahPage() {
       {showModal && selectedProject && (
         <div
           onClick={e => { if (e.target === e.currentTarget) closeModal() }}
-          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div style={{ background: '#0F1629', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '32px', maxWidth: '520px', width: '100%' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>Kirim Lamaran</h2>
-            <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)', marginBottom: '24px' }}>{selectedProject.title}</p>
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ background: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.lg, padding: '32px', maxWidth: '520px', width: '100%', boxShadow: theme.shadow.hover }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: C.textDark, marginBottom: '4px' }}>Kirim Lamaran</h2>
+            <p style={{ fontSize: '14px', color: C.textMuted, marginBottom: '24px' }}>{selectedProject.title}</p>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>
-                Kenapa kamu cocok untuk proyek ini? <span style={{ color: '#EF4444' }}>*</span>
+              <label style={{ display: 'block', fontSize: '14px', color: C.textDark, marginBottom: '6px' }}>
+                Kenapa kamu cocok untuk proyek ini? <span style={{ color: STATUS_RED }}>*</span>
               </label>
               <div style={{ position: 'relative' }}>
                 <textarea
@@ -367,17 +396,17 @@ export default function JelajahPage() {
                   placeholder="Ceritakan pengalamanmu yang relevan, skill yang kamu miliki, atau pendekatan yang akan kamu gunakan..."
                   style={{ ...inp, minHeight: '120px', resize: 'vertical', paddingBottom: '24px' }}
                 />
-                <span style={{ position: 'absolute', bottom: '8px', right: '10px', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                <span style={{ position: 'absolute', bottom: '8px', right: '10px', fontSize: '12px', color: C.textTertiary }}>
                   {coverLetter.length}/500
                 </span>
               </div>
               {coverLetterError && (
-                <p style={{ color: '#EF4444', fontSize: '13px', marginTop: '4px' }}>{coverLetterError}</p>
+                <p style={{ color: STATUS_RED, fontSize: '13px', marginTop: '4px' }}>{coverLetterError}</p>
               )}
             </div>
 
             <div style={{ marginBottom: '28px' }}>
-              <label style={{ display: 'block', fontSize: '14px', color: 'rgba(255,255,255,0.7)', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '14px', color: C.textDark, marginBottom: '6px' }}>
                 Harga Penawaran (Rp)
               </label>
               <input
@@ -390,20 +419,20 @@ export default function JelajahPage() {
                 max={selectedProject.budget_max}
                 style={inp}
               />
-              <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '6px' }}>
+              <p style={{ fontSize: '12px', color: C.textMuted, marginTop: '6px' }}>
                 Budget klien: {fmt(selectedProject.budget_min)} – {fmt(selectedProject.budget_max)}
               </p>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button onClick={closeModal}
-                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px', padding: '10px 20px', fontSize: '14px', cursor: 'pointer' }}>
+                style={{ background: 'transparent', border: `1px solid ${C.border}`, color: C.textDark, borderRadius: R.sm, padding: '10px 20px', fontSize: '14px', cursor: 'pointer', fontFamily: theme.fonts.body }}>
                 Batalkan
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={applyingId === selectedProject.id}
-                style={{ background: '#4F6EF7', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 24px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}>
+                style={{ background: C.primary, color: 'white', border: 'none', borderRadius: R.sm, padding: '10px 24px', fontSize: '14px', fontWeight: 500, cursor: 'pointer', fontFamily: theme.fonts.body }}>
                 {applyingId === selectedProject.id ? 'Mengirim...' : 'Kirim Lamaran'}
               </button>
             </div>

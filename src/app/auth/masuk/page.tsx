@@ -4,6 +4,12 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Mail, Lock } from 'lucide-react'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
+
+const STATUS_RED = '#EF4444'
 
 export default function MasukPage() {
   const [email, setEmail] = useState('')
@@ -35,117 +41,94 @@ export default function MasukPage() {
     }
   }
 
+  const inp: React.CSSProperties = {
+    width: '100%', padding: '10px 12px 10px 38px',
+    backgroundColor: C.bgWhite, border: `1px solid ${C.border}`,
+    borderRadius: R.sm, color: C.textDark, fontSize: '14px',
+    boxSizing: 'border-box', outline: 'none',
+  }
+
   return (
     <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#0A0E1A',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'sans-serif',
-      padding: '16px',
+      minHeight: '100vh', backgroundColor: C.bgLavenderSoft,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: theme.fonts.body, padding: '16px',
     }}>
       <div style={{
-        backgroundColor: '#131929',
-        padding: 'clamp(24px, 5vw, 40px)',
-        borderRadius: '12px',
-        width: '100%',
-        maxWidth: '420px',
-        border: '1px solid #1e2d4a'
+        backgroundColor: C.bgWhite, padding: 'clamp(24px, 5vw, 40px)',
+        borderRadius: R.lg, width: '100%', maxWidth: '420px',
+        border: `1px solid ${C.border}`, boxShadow: theme.shadow.hover,
       }}>
-        <h1 style={{ color: 'white', marginBottom: '8px', fontSize: '24px' }}>
-          Masuk ke Gawe
-        </h1>
-        <p style={{ color: '#8892a4', marginBottom: '32px', fontSize: '14px' }}>
-          Lanjutkan perjalanan freelance-mu
-        </p>
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <div style={{ fontSize: '28px', fontWeight: 800, color: C.textDark, fontFamily: theme.fonts.headline, marginBottom: '6px' }}>
+            Gawe
+          </div>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: C.textDark, marginBottom: '6px' }}>
+            Masuk ke akunmu
+          </h1>
+          <p style={{ color: C.textMuted, fontSize: '14px' }}>
+            Lanjutkan perjalanan freelance-mu
+          </p>
+        </div>
 
         {error && (
           <div style={{
-            backgroundColor: '#2d1515',
-            color: '#ff6b6b',
-            padding: '12px',
-            borderRadius: '8px',
-            marginBottom: '16px',
-            fontSize: '14px'
+            backgroundColor: STATUS_RED + '18', color: STATUS_RED,
+            border: `1px solid ${STATUS_RED}33`,
+            padding: '10px 14px', borderRadius: R.sm,
+            marginBottom: '16px', fontSize: '14px',
           }}>
             {error}
           </div>
         )}
 
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ color: '#8892a4', fontSize: '13px', display: 'block', marginBottom: '6px' }}>
+        <div style={{ marginBottom: '14px' }}>
+          <label style={{ color: C.textMuted, fontSize: '13px', display: 'block', marginBottom: '6px' }}>
             Email
           </label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="email@kamu.com"
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              backgroundColor: '#0A0E1A',
-              border: '1px solid #1e2d4a',
-              borderRadius: '8px',
-              color: 'white',
-              fontSize: '14px',
-              boxSizing: 'border-box'
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+              <Mail size={16} strokeWidth={1.5} color={C.textTertiary} />
+            </div>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleMasuk()}
+              placeholder="email@kamu.com" style={inp} />
+          </div>
         </div>
 
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ color: '#8892a4', fontSize: '13px', display: 'block', marginBottom: '6px' }}>
+        <div style={{ marginBottom: '8px' }}>
+          <label style={{ color: C.textMuted, fontSize: '13px', display: 'block', marginBottom: '6px' }}>
             Password
           </label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Password kamu"
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              backgroundColor: '#0A0E1A',
-              border: '1px solid #1e2d4a',
-              borderRadius: '8px',
-              color: 'white',
-              fontSize: '14px',
-              boxSizing: 'border-box'
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+              <Lock size={16} strokeWidth={1.5} color={C.textTertiary} />
+            </div>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleMasuk()}
+              placeholder="Password kamu" style={inp} />
+          </div>
         </div>
 
-        <button
-          onClick={handleMasuk}
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '12px',
-            backgroundColor: '#4F6EF7',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '15px',
-            fontWeight: 'bold',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1
-          }}
-        >
+        <div style={{ textAlign: 'right', marginBottom: '20px' }}>
+          <Link href="/auth/lupa-password" style={{ color: C.primary, fontSize: '13px', textDecoration: 'none' }}>
+            Lupa password?
+          </Link>
+        </div>
+
+        <button onClick={handleMasuk} disabled={loading} style={{
+          width: '100%', padding: '12px', backgroundColor: C.primary,
+          color: 'white', border: 'none', borderRadius: R.sm,
+          fontSize: '15px', fontWeight: 700,
+          cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
+        }}>
           {loading ? 'Masuk...' : 'Masuk'}
         </button>
 
-        <p style={{ color: '#8892a4', textAlign: 'center', marginTop: '24px', fontSize: '14px' }}>
-          Lupa password?{' '}
-          <Link href="/auth/lupa-password" style={{ color: '#8892a4' }}>
-            Reset di sini
-          </Link>
-        </p>
-        <p style={{ textAlign: 'center', color: '#8892a4', marginTop: '12px', fontSize: '14px' }}>
+        <p style={{ color: C.textMuted, textAlign: 'center', marginTop: '20px', fontSize: '14px' }}>
           Belum punya akun?{' '}
-          <Link href="/auth/daftar" style={{ color: '#4F6EF7' }}>
-            Daftar
+          <Link href="/auth/daftar" style={{ color: C.primary, fontWeight: 600, textDecoration: 'none' }}>
+            Daftar gratis
           </Link>
         </p>
       </div>

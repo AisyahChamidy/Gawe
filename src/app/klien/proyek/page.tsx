@@ -3,7 +3,13 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import NavbarKlien from '@/components/NavbarKlien'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Zap, ClipboardList, Wallet, Search, Star, MessageCircle } from 'lucide-react'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
+
+const STATUS_RED   = '#EF4444'
+const STATUS_AMBER = '#F59E0B'
 
 type Application = {
   id: string
@@ -30,14 +36,14 @@ function formatRelativeDate(dateStr: string): string {
 }
 
 const projectStatusBadge: Record<string, { label: string; color: string; bg: string }> = {
-  open:        { label: 'Menerima Lamaran',   color: '#4F6EF7', bg: 'rgba(79,110,247,0.15)'  },
-  in_review:   { label: 'Pilih Freelancer',   color: '#F59E0B', bg: 'rgba(245,158,11,0.15)'  },
-  funded:      { label: 'Didanai',            color: '#22D3EE', bg: 'rgba(34,211,238,0.15)'  },
-  in_progress: { label: 'Sedang Dikerjakan',  color: '#22D3EE', bg: 'rgba(34,211,238,0.15)'  },
-  submitted:   { label: 'Menunggu Reviewmu',  color: '#8B5CF6', bg: 'rgba(139,92,246,0.15)'  },
-  revision:    { label: 'Perlu Revisi Ulang', color: '#EF4444', bg: 'rgba(239,68,68,0.15)'   },
-  completed:   { label: 'Selesai ✓',         color: '#10B981', bg: 'rgba(16,185,129,0.15)'  },
-  cancelled:   { label: 'Dibatalkan',         color: '#EF4444', bg: 'rgba(239,68,68,0.15)'   },
+  open:        { label: 'Menerima Lamaran',   color: C.primary,    bg: C.primaryTint       },
+  in_review:   { label: 'Pilih Freelancer',   color: STATUS_AMBER, bg: STATUS_AMBER + '26' },
+  funded:      { label: 'Didanai',            color: C.primary,    bg: C.primaryTint       },
+  in_progress: { label: 'Sedang Dikerjakan',  color: C.primary,    bg: C.primaryTint       },
+  submitted:   { label: 'Menunggu Reviewmu',  color: C.primary,    bg: C.primaryTint       },
+  revision:    { label: 'Perlu Revisi Ulang', color: STATUS_RED,   bg: STATUS_RED + '1A'   },
+  completed:   { label: 'Selesai ✓',         color: C.success,    bg: C.successTint       },
+  cancelled:   { label: 'Dibatalkan',         color: STATUS_RED,   bg: STATUS_RED + '1A'   },
 }
 
 const ACTION_STATUSES = new Set(['in_review', 'submitted', 'revision', 'completed'])
@@ -193,21 +199,21 @@ export default function KlienProyekPage() {
   const urgentCount      = counts['perlu-tindakan']
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
       <NavbarKlien />
       <div style={{ padding: 'clamp(20px, 5vw, 40px) clamp(16px, 4vw, 32px)', maxWidth: '900px', margin: '0 auto' }}>
 
         {/* ── Page header ──────────────────────────────────────────────── */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 800, margin: 0 }}>Proyekku</h1>
-            <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '6px', marginBottom: 0 }}>
+            <h1 style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 800, margin: 0, color: C.textDark, fontFamily: theme.fonts.headline }}>Proyekku</h1>
+            <p style={{ color: C.textMuted, marginTop: '6px', marginBottom: 0 }}>
               {loading ? 'Memuat...' : `${projects.length} proyek diposting`}
             </p>
           </div>
           <a href="/klien/post-proyek" style={{
-            background: '#4F6EF7', color: 'white', textDecoration: 'none',
-            borderRadius: '10px', padding: '10px 20px',
+            background: C.primary, color: 'white', textDecoration: 'none',
+            borderRadius: R.sm, padding: '10px 20px',
             fontSize: '14px', fontWeight: 500, whiteSpace: 'nowrap',
           }}>
             + Post Proyek
@@ -215,13 +221,15 @@ export default function KlienProyekPage() {
         </div>
 
         {loading ? (
-          <div style={{ color: '#8892a4', textAlign: 'center', padding: '60px' }}>Memuat...</div>
+          <div style={{ color: C.textMuted, textAlign: 'center', padding: '60px' }}>Memuat...</div>
         ) : projects.length === 0 ? (
-          <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '60px', textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📋</div>
-            <p style={{ color: 'white', fontWeight: 700, fontSize: '16px', marginBottom: '8px' }}>Belum ada proyek yang dipost.</p>
-            <p style={{ color: '#8892a4', fontSize: '14px', marginBottom: '20px' }}>Mulai posting proyek dan temukan freelancer yang tepat!</p>
-            <a href="/klien/post-proyek" style={{ display: 'inline-block', padding: '10px 20px', background: '#4F6EF7', color: 'white', borderRadius: '10px', textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>
+          <div style={{ background: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.lg, padding: '60px', textAlign: 'center', boxShadow: theme.shadow.card }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <ClipboardList size={48} strokeWidth={0.8} color={C.textTertiary} />
+            </div>
+            <p style={{ color: C.textDark, fontWeight: 700, fontSize: '16px', marginBottom: '8px' }}>Belum ada proyek yang dipost.</p>
+            <p style={{ color: C.textMuted, fontSize: '14px', marginBottom: '20px' }}>Mulai posting proyek dan temukan freelancer yang tepat!</p>
+            <a href="/klien/post-proyek" style={{ display: 'inline-block', padding: '10px 20px', background: C.primary, color: 'white', borderRadius: R.sm, textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>
               + Post Proyek Pertamamu
             </a>
           </div>
@@ -234,12 +242,13 @@ export default function KlienProyekPage() {
                 return (
                   <button key={tab.key} onClick={() => switchTab(tab.key)}
                     style={{
-                      padding: '6px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
+                      padding: '6px 16px', borderRadius: R.sm, fontSize: '13px', fontWeight: 500,
                       cursor: 'pointer', border: '1px solid',
-                      background:   isActive ? '#4F6EF7'                    : 'transparent',
-                      borderColor:  isActive ? '#4F6EF7'                    : 'rgba(255,255,255,0.12)',
-                      color:        isActive ? 'white'                      : 'rgba(255,255,255,0.5)',
+                      background:   isActive ? C.primary        : 'transparent',
+                      borderColor:  isActive ? C.primary        : C.primaryBorder,
+                      color:        isActive ? 'white'          : C.textMuted,
                       transition: 'all 0.15s ease',
+                      fontFamily: theme.fonts.body,
                     }}>
                     {tab.label} ({counts[tab.key]})
                   </button>
@@ -247,33 +256,37 @@ export default function KlienProyekPage() {
               })}
             </div>
 
-            {/* ── Urgent banner (persistent when there are urgent items) ── */}
+            {/* ── Urgent banner (persistent when not on perlu-tindakan tab) ── */}
             {urgentCount > 0 && activeTab !== 'perlu-tindakan' && (
               <div
                 onClick={() => switchTab('perlu-tindakan')}
                 style={{
-                  background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)',
-                  color: '#F59E0B', borderRadius: '10px', padding: '10px 16px',
+                  background: STATUS_AMBER + '18', border: `1px solid ${STATUS_AMBER}33`,
+                  color: STATUS_AMBER, borderRadius: R.sm, padding: '10px 16px',
                   marginBottom: '16px', fontSize: '13px', fontWeight: 500, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '8px',
                 }}>
-                ⚡ {urgentCount} proyek menunggu tindakanmu
+                <Zap size={14} strokeWidth={1.5} />
+                {urgentCount} proyek menunggu tindakanmu
               </div>
             )}
 
             {/* ── Banner saat di tab Perlu Tindakan ── */}
             {urgentCount > 0 && activeTab === 'perlu-tindakan' && (
               <div style={{
-                background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)',
-                color: '#F59E0B', borderRadius: '10px', padding: '10px 16px',
+                background: STATUS_AMBER + '18', border: `1px solid ${STATUS_AMBER}33`,
+                color: STATUS_AMBER, borderRadius: R.sm, padding: '10px 16px',
                 marginBottom: '16px', fontSize: '13px', fontWeight: 500,
+                display: 'flex', alignItems: 'center', gap: '8px',
               }}>
-                ⚡ {urgentCount} proyek menunggu tindakanmu
+                <Zap size={14} strokeWidth={1.5} />
+                {urgentCount} proyek menunggu tindakanmu
               </div>
             )}
 
             {/* ── Project list ─────────────────────────────────────────── */}
             {filteredProjects.length === 0 ? (
-              <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '14px', padding: '48px 24px', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '14px' }}>
+              <div style={{ background: C.bgLavenderSoft, border: `1px solid ${C.border}`, borderRadius: R.lg, padding: '48px 24px', textAlign: 'center', color: C.textMuted, fontSize: '14px' }}>
                 Tidak ada proyek di kategori ini.
               </div>
             ) : (
@@ -291,33 +304,34 @@ export default function KlienProyekPage() {
                       <div
                         onClick={() => toggleProject(project.id)}
                         style={{
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(255,255,255,0.08)',
-                          borderRadius: isExpanded ? '14px 14px 0 0' : '14px',
+                          background: C.bgWhite,
+                          border: `1px solid ${C.border}`,
+                          borderRadius: isExpanded ? `${R.md} ${R.md} 0 0` : R.md,
                           padding: '18px 24px',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '16px',
                           flexWrap: 'wrap',
+                          boxShadow: isExpanded ? 'none' : theme.shadow.card,
                         }}
                       >
                         {/* Left: category + title */}
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <span style={{
-                            background: 'rgba(79,110,247,0.12)', color: '#4F6EF7',
+                            background: C.primaryTint, color: C.primary,
                             fontSize: '11px', padding: '2px 9px', borderRadius: '20px',
                             display: 'inline-block', marginBottom: '5px',
                           }}>
                             {project.category}
                           </span>
-                          <div style={{ fontSize: '15px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: '15px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: C.textDark }}>
                             {project.title}
                           </div>
                         </div>
 
                         {/* Center: budget */}
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#22D3EE', flexShrink: 0 }}>
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: C.primary, flexShrink: 0, fontFamily: theme.fonts.mono }}>
                           {formatRupiah(project.budget_min)} – {formatRupiah(project.budget_max)}
                         </div>
 
@@ -333,7 +347,7 @@ export default function KlienProyekPage() {
                           <div style={{
                             transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                             transition: 'transform 0.2s ease',
-                            color: 'rgba(255,255,255,0.4)',
+                            color: C.textMuted,
                             display: 'flex', alignItems: 'center',
                           }}>
                             <ChevronDown size={18} strokeWidth={1.5} />
@@ -344,10 +358,10 @@ export default function KlienProyekPage() {
                       {/* ── Card body ── */}
                       {isExpanded && (
                         <div style={{
-                          background: 'rgba(255,255,255,0.02)',
-                          border: '1px solid rgba(255,255,255,0.08)',
+                          background: C.bgLavenderSoft,
+                          border: `1px solid ${C.border}`,
                           borderTop: 'none',
-                          borderRadius: '0 0 14px 14px',
+                          borderRadius: `0 0 ${R.md} ${R.md}`,
                           padding: '0 24px 20px',
                         }}>
 
@@ -356,31 +370,34 @@ export default function KlienProyekPage() {
                             <div style={{ paddingTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
                               {project.status === 'in_review' && (
                                 <a href={`/klien/proyek/${project.id}/bayar`}
-                                  style={{ padding: '8px 16px', background: '#10B981', color: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
-                                  💰 Danai Proyek
+                                  style={{ padding: '8px 16px', background: C.success, color: 'white', borderRadius: R.sm, fontSize: '13px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                  <Wallet size={14} strokeWidth={1.5} />
+                                  Danai Proyek
                                 </a>
                               )}
                               {project.status === 'submitted' && (
                                 <a href={`/klien/proyek/${project.id}/review`}
-                                  style={{ padding: '8px 16px', background: '#8B5CF6', color: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
-                                  🔍 Review Hasil
+                                  style={{ padding: '8px 16px', background: C.primary, color: 'white', borderRadius: R.sm, fontSize: '13px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                  <Search size={14} strokeWidth={1.5} />
+                                  Review Hasil
                                 </a>
                               )}
                               {project.status === 'revision' && (
                                 <a href={`/klien/proyek/${project.id}/review`}
-                                  style={{ padding: '8px 16px', background: '#f59e0b', color: '#0A0E1A', borderRadius: '8px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
+                                  style={{ padding: '8px 16px', background: STATUS_AMBER, color: C.textDark, borderRadius: R.sm, fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
                                   ↩ Lihat Revisi
                                 </a>
                               )}
                               {project.status === 'completed' && (
                                 reviewedIds.has(project.id) ? (
-                                  <span style={{ fontSize: '12px', color: '#10B981', padding: '6px 14px', borderRadius: '20px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', fontWeight: 600 }}>
+                                  <span style={{ fontSize: '12px', color: C.success, padding: '6px 14px', borderRadius: '20px', background: C.successTint, border: `1px solid ${C.success}33`, fontWeight: 600 }}>
                                     ✓ Sudah Dirating
                                   </span>
                                 ) : (
                                   <a href={`/klien/proyek/${project.id}/rating`}
-                                    style={{ padding: '8px 16px', background: '#FBBF24', color: '#0A0E1A', borderRadius: '8px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
-                                    ⭐ Beri Rating
+                                    style={{ padding: '8px 16px', background: STATUS_AMBER, color: C.textDark, borderRadius: R.sm, fontSize: '13px', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                    <Star size={14} strokeWidth={1.5} />
+                                    Beri Rating
                                   </a>
                                 )
                               )}
@@ -388,15 +405,15 @@ export default function KlienProyekPage() {
                           )}
 
                           {/* Divider */}
-                          <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: hasActions ? '0 0 16px' : '16px 0' }} />
+                          <div style={{ height: '1px', background: C.border, margin: hasActions ? '0 0 16px' : '16px 0' }} />
 
                           {/* Applicants label */}
-                          <div style={{ fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', fontWeight: 500, marginBottom: '12px' }}>
+                          <div style={{ fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: C.textMuted, fontWeight: 500, marginBottom: '12px' }}>
                             Pelamar ({apps.length})
                           </div>
 
                           {apps.length === 0 ? (
-                            <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '14px', padding: '8px 0 4px' }}>
+                            <p style={{ color: C.textMuted, fontSize: '14px', padding: '8px 0 4px' }}>
                               Belum ada yang melamar proyek ini.
                             </p>
                           ) : (
@@ -408,20 +425,21 @@ export default function KlienProyekPage() {
 
                                 return (
                                   <div key={app.id} style={{
-                                    background: '#0A0E1A',
-                                    border: '1px solid rgba(255,255,255,0.07)',
-                                    borderRadius: '12px',
+                                    background: C.bgWhite,
+                                    border: `1px solid ${C.border}`,
+                                    borderRadius: R.md,
                                     padding: '14px 16px',
                                     display: 'flex',
                                     gap: '12px',
+                                    boxShadow: theme.shadow.card,
                                   }}>
                                     {/* Avatar */}
                                     <div style={{
                                       width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-                                      background: 'rgba(79,110,247,0.15)',
-                                      border: '1px solid rgba(79,110,247,0.25)',
+                                      background: C.primaryTint,
+                                      border: `1px solid ${C.primaryBorder}`,
                                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                      fontSize: '15px', fontWeight: 700, color: '#4F6EF7',
+                                      fontSize: '15px', fontWeight: 700, color: C.primary,
                                     }}>
                                       {initial}
                                     </div>
@@ -430,31 +448,31 @@ export default function KlienProyekPage() {
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                       <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginBottom: '2px' }}>
                                         <a href={`/freelancer/${app.freelancer_id}`}
-                                          style={{ fontWeight: 600, fontSize: '14px', color: 'white', textDecoration: 'none' }}
-                                          onMouseEnter={e => (e.currentTarget.style.color = '#4F6EF7')}
-                                          onMouseLeave={e => (e.currentTarget.style.color = 'white')}>
+                                          style={{ fontWeight: 600, fontSize: '14px', color: C.textDark, textDecoration: 'none' }}
+                                          onMouseEnter={e => (e.currentTarget.style.color = C.primary)}
+                                          onMouseLeave={e => (e.currentTarget.style.color = C.textDark)}>
                                           {app.freelancer_name} ↗
                                         </a>
                                         {app.trust_score !== null && (
-                                          <span style={{ background: 'rgba(79,110,247,0.12)', color: '#4F6EF7', borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 500 }}>
+                                          <span style={{ background: C.primaryTint, color: C.primary, borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 500 }}>
                                             TS {app.trust_score}
                                           </span>
                                         )}
-                                        <span style={{ marginLeft: 'auto', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+                                        <span style={{ marginLeft: 'auto', fontSize: '11px', color: C.textMuted }}>
                                           {formatRelativeDate(app.created_at)}
                                         </span>
                                       </div>
 
-                                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)', marginBottom: '8px' }}>
+                                      <div style={{ fontSize: '12px', color: C.textMuted, marginBottom: '8px' }}>
                                         {app.headline || 'Freelancer'}
                                       </div>
 
                                       {coverLetter && (
                                         <div style={{ marginBottom: '10px' }}>
                                           <div style={isAppExpanded ? {
-                                            fontSize: '13px', color: 'rgba(255,255,255,0.7)', whiteSpace: 'pre-wrap', lineHeight: 1.6,
+                                            fontSize: '13px', color: C.textDark, whiteSpace: 'pre-wrap', lineHeight: 1.6,
                                           } : {
-                                            fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.6,
+                                            fontSize: '13px', color: C.textDark, lineHeight: 1.6,
                                             overflow: 'hidden', display: '-webkit-box',
                                             WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                                           } as React.CSSProperties}>
@@ -462,7 +480,7 @@ export default function KlienProyekPage() {
                                           </div>
                                           {coverLetter.length > 150 && (
                                             <button onClick={() => toggleAppExpand(app.id)}
-                                              style={{ marginTop: '3px', background: 'none', border: 'none', color: '#4F6EF7', fontSize: '12px', cursor: 'pointer', padding: 0 }}>
+                                              style={{ marginTop: '3px', background: 'none', border: 'none', color: C.primary, fontSize: '12px', cursor: 'pointer', padding: 0 }}>
                                               {isAppExpanded ? 'Sembunyikan' : 'Lihat selengkapnya'}
                                             </button>
                                           )}
@@ -473,26 +491,27 @@ export default function KlienProyekPage() {
                                         {app.status === 'pending' ? (
                                           <>
                                             <button onClick={() => handleTerima(app.id, project.id, app.freelancer_id)} disabled={actionLoading === app.id}
-                                              style={{ padding: '6px 14px', background: '#10B981', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', opacity: actionLoading === app.id ? 0.7 : 1 }}>
+                                              style={{ padding: '6px 14px', background: C.success, color: 'white', border: 'none', borderRadius: R.sm, fontSize: '13px', fontWeight: 600, cursor: 'pointer', opacity: actionLoading === app.id ? 0.7 : 1, fontFamily: theme.fonts.body }}>
                                               Terima
                                             </button>
                                             <button onClick={() => handleTolak(app.id)} disabled={actionLoading === app.id}
-                                              style={{ padding: '6px 14px', background: 'transparent', color: '#EF4444', border: '1px solid #EF4444', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', opacity: actionLoading === app.id ? 0.7 : 1 }}>
+                                              style={{ padding: '6px 14px', background: 'transparent', color: STATUS_RED, border: `1px solid ${STATUS_RED}`, borderRadius: R.sm, fontSize: '13px', fontWeight: 600, cursor: 'pointer', opacity: actionLoading === app.id ? 0.7 : 1, fontFamily: theme.fonts.body }}>
                                               Tolak
                                             </button>
                                           </>
                                         ) : app.status === 'accepted' ? (
                                           <>
                                             <a href={'/klien/proyek/' + project.id}
-                                              style={{ padding: '5px 12px', background: '#4F6EF7', color: 'white', borderRadius: '20px', fontSize: '12px', fontWeight: 600, textDecoration: 'none' }}>
-                                              💬 Chat
+                                              style={{ padding: '5px 12px', background: C.primary, color: 'white', borderRadius: '20px', fontSize: '12px', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                              <MessageCircle size={12} strokeWidth={1.5} />
+                                              Chat
                                             </a>
-                                            <span style={{ background: 'rgba(16,185,129,0.12)', color: '#10B981', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
+                                            <span style={{ background: C.successTint, color: C.success, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
                                               ✓ Diterima
                                             </span>
                                           </>
                                         ) : (
-                                          <span style={{ background: 'rgba(239,68,68,0.12)', color: '#EF4444', fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
+                                          <span style={{ background: STATUS_RED + '18', color: STATUS_RED, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
                                             Ditolak
                                           </span>
                                         )}

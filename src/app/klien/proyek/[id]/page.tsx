@@ -3,6 +3,10 @@ import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import NavbarKlien from '@/components/NavbarKlien'
+import { Send, MessageCircle } from 'lucide-react'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
 
 type Message = { id: string; content: string; sender_id: string; created_at: string; sender_name?: string }
 type Project = { id: string; title: string; category: string; budget_min: number; budget_max: number; status: string }
@@ -67,49 +71,56 @@ export default function KlienProyekDetailPage() {
     loadMessages()
   }
 
-  if (loading) return <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Memuat...</div>
+  if (loading) return (
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.textMuted, fontFamily: theme.fonts.body }}>
+      Memuat...
+    </div>
+  )
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark, display: 'flex', flexDirection: 'column' }}>
       <NavbarKlien />
       <div style={{ flex: 1, maxWidth: '900px', width: '100%', margin: '0 auto', padding: '32px 32px 0', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
         {project && (
-          <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px 24px' }}>
+          <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px 24px', boxShadow: theme.shadow.card }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <span style={{ backgroundColor: '#1a2340', color: '#4F6EF7', fontSize: '11px', padding: '2px 8px', borderRadius: '20px', marginBottom: '8px', display: 'inline-block' }}>{project.category}</span>
-                <h1 style={{ fontSize: '20px', fontWeight: 'bold', margin: '6px 0 4px' }}>{project.title}</h1>
-                <span style={{ color: '#22D3EE', fontSize: '14px' }}>{fmt(project.budget_min)} – {fmt(project.budget_max)}</span>
+                <span style={{ backgroundColor: C.primaryTint, color: C.primary, fontSize: '11px', padding: '2px 8px', borderRadius: '20px', marginBottom: '8px', display: 'inline-block' }}>{project.category}</span>
+                <h1 style={{ fontSize: '20px', fontWeight: 700, margin: '6px 0 4px', color: C.textDark, fontFamily: theme.fonts.headline }}>{project.title}</h1>
+                <span style={{ color: C.primary, fontSize: '14px', fontFamily: theme.fonts.mono }}>{fmt(project.budget_min)} – {fmt(project.budget_max)}</span>
               </div>
-              <a href="/klien/proyek" style={{ color: '#8892a4', fontSize: '13px', textDecoration: 'none' }}>← Kembali</a>
+              <a href="/klien/proyek" style={{ color: C.textMuted, fontSize: '13px', textDecoration: 'none' }}>← Kembali</a>
             </div>
           </div>
         )}
 
-        <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '450px' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid #1e2d4a', fontSize: '14px', fontWeight: 'bold', color: '#8892a4' }}>
-            💬 Pesan dengan Freelancer
+        <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: '450px', boxShadow: theme.shadow.card }}>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${C.border}`, fontSize: '14px', fontWeight: 700, color: C.textDark, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MessageCircle size={16} strokeWidth={1.5} color={C.primary} />
+            Pesan dengan Freelancer
           </div>
-          <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px' }}>
+          <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', backgroundColor: C.bgLavenderSoft }}>
             {messages.length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#8892a4', padding: '40px 0' }}>
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
-                <p>Belum ada pesan. Mulai diskusi dengan freelancer!</p>
+              <div style={{ textAlign: 'center', color: C.textMuted, padding: '40px 0' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px', opacity: 0.3 }}>
+                  <MessageCircle size={32} strokeWidth={1} color={C.textDark} />
+                </div>
+                <p style={{ margin: 0 }}>Belum ada pesan. Mulai diskusi dengan freelancer!</p>
               </div>
             ) : messages.map(m => {
               const isMe = m.sender_id === user?.id
               return (
                 <div key={m.id} style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap: '8px', alignItems: 'flex-end' }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: isMe ? '#4F6EF7' : '#1e2d4a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', flexShrink: 0 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: isMe ? C.primary : C.bgLavenderStrong, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, color: isMe ? 'white' : C.textMuted }}>
                     {(m.sender_name || 'U')[0].toUpperCase()}
                   </div>
                   <div style={{ maxWidth: '65%' }}>
-                    {!isMe && <div style={{ fontSize: '11px', color: '#8892a4', marginBottom: '4px', marginLeft: '4px' }}>{m.sender_name}</div>}
-                    <div style={{ backgroundColor: isMe ? '#4F6EF7' : '#0A0E1A', border: isMe ? 'none' : '1px solid #1e2d4a', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px', padding: '10px 14px', fontSize: '14px', lineHeight: '1.5' }}>
+                    {!isMe && <div style={{ fontSize: '11px', color: C.textMuted, marginBottom: '4px', marginLeft: '4px' }}>{m.sender_name}</div>}
+                    <div style={{ backgroundColor: isMe ? C.primary : C.bgWhite, border: isMe ? 'none' : `1px solid ${C.border}`, borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px', padding: '10px 14px', fontSize: '14px', lineHeight: '1.5', color: isMe ? 'white' : C.textDark }}>
                       {m.content}
                     </div>
-                    <div style={{ fontSize: '10px', color: '#8892a4', marginTop: '4px', textAlign: isMe ? 'right' : 'left', paddingLeft: isMe ? 0 : '4px' }}>
+                    <div style={{ fontSize: '10px', color: C.textTertiary, marginTop: '4px', textAlign: isMe ? 'right' : 'left', paddingLeft: isMe ? 0 : '4px' }}>
                       {new Date(m.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
@@ -118,14 +129,18 @@ export default function KlienProyekDetailPage() {
             })}
             <div ref={bottomRef} />
           </div>
-          <div style={{ padding: '16px 20px', borderTop: '1px solid #1e2d4a', display: 'flex', gap: '8px' }}>
+          <div style={{ padding: '16px 20px', borderTop: `1px solid ${C.border}`, display: 'flex', gap: '8px', backgroundColor: C.bgWhite }}>
             <input value={input} onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
               placeholder="Tulis pesan... (Enter untuk kirim)"
-              style={{ flex: 1, padding: '10px 14px', backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white', fontSize: '14px', outline: 'none' }} />
-            <button onClick={handleSend} disabled={sending || !input.trim()}
-              style={{ padding: '10px 20px', backgroundColor: input.trim() ? '#4F6EF7' : '#1e2d4a', color: 'white', border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: input.trim() ? 'pointer' : 'default' }}>
-              {sending ? '...' : 'Kirim'}
+              style={{ flex: 1, padding: '10px 14px', backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, borderRadius: R.sm, color: C.textDark, fontSize: '14px', outline: 'none' }} />
+            <button onClick={handleSend} disabled={sending || !input.trim()} style={{
+              padding: '10px 16px', backgroundColor: input.trim() ? C.primary : C.bgLavenderStrong,
+              color: input.trim() ? 'white' : C.textMuted,
+              border: 'none', borderRadius: R.sm, cursor: input.trim() ? 'pointer' : 'default',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {sending ? '...' : <Send size={16} strokeWidth={1.5} />}
             </button>
           </div>
         </div>

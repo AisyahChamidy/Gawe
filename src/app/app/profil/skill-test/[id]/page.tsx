@@ -3,6 +3,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import { FileText, Clock, Target, Star, Lightbulb, PartyPopper } from 'lucide-react'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
+const STATUS_RED = '#EF4444'
 
 type Question = { id: string; question: string; options: string[]; correct: number; explanation: string }
 type SkillTest = { id: string; category: string; title: string; description: string; duration_minutes: number; passing_score: number; questions: Question[] }
@@ -75,45 +80,48 @@ export default function SkillTestPage() {
   }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Memuat...</div>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.textMuted, fontFamily: theme.fonts.body }}>Memuat...</div>
   )
   if (!test) return null
 
   const questions: Question[] = test.questions
 
+  const statItems = [
+    { Icon: FileText, label: 'Jumlah Soal', value: `${questions.length} soal` },
+    { Icon: Clock,    label: 'Durasi',      value: `${test.duration_minutes} menit` },
+    { Icon: Target,   label: 'Nilai Lulus', value: `${test.passing_score}/100` },
+    { Icon: Star,     label: 'Bonus Lulus', value: '+5 Trust Score' },
+  ]
+
   // ── INTRO ──
   if (phase === 'intro') return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
       <Navbar />
       <div style={{ maxWidth: '640px', margin: '0 auto', padding: 'clamp(32px,6vw,60px) clamp(16px,4vw,32px)' }}>
-        <a href="/app/profil/skill-test" style={{ color: '#8892a4', textDecoration: 'none', fontSize: '13px' }}>← Semua Skill Test</a>
-        <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '16px', padding: '36px', marginTop: '20px' }}>
-          <span style={{ backgroundColor: 'rgba(79,110,247,0.1)', border: '1px solid rgba(79,110,247,0.2)', color: '#4F6EF7', fontSize: '12px', padding: '4px 12px', borderRadius: '20px', fontWeight: '600' }}>
+        <a href="/app/profil/skill-test" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '13px' }}>← Semua Skill Test</a>
+        <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '36px', marginTop: '20px', boxShadow: theme.shadow.card }}>
+          <span style={{ backgroundColor: C.primaryTint, border: `1px solid ${C.primaryBorder}`, color: C.primary, fontSize: '12px', padding: '4px 12px', borderRadius: R.pill, fontWeight: 600 }}>
             {test.category}
           </span>
-          <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '16px 0 12px', fontFamily: 'Outfit, sans-serif' }}>{test.title}</h1>
-          <p style={{ color: '#8892a4', fontSize: '14px', lineHeight: '1.7', marginBottom: '28px' }}>{test.description}</p>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, margin: '16px 0 12px', fontFamily: theme.fonts.headline, color: C.textDark }}>{test.title}</h1>
+          <p style={{ color: C.textMuted, fontSize: '14px', lineHeight: '1.7', marginBottom: '28px' }}>{test.description}</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px,1fr))', gap: '12px', marginBottom: '28px' }}>
-            {[
-              { icon: '📝', label: 'Jumlah Soal', value: `${questions.length} soal` },
-              { icon: '⏱', label: 'Durasi', value: `${test.duration_minutes} menit` },
-              { icon: '🎯', label: 'Nilai Lulus', value: `${test.passing_score}/100` },
-              { icon: '⭐', label: 'Bonus Lulus', value: '+5 Trust Score' },
-            ].map(s => (
-              <div key={s.label} style={{ backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '10px', padding: '14px' }}>
-                <div style={{ fontSize: '20px', marginBottom: '6px' }}>{s.icon}</div>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: 'white', marginBottom: '2px' }}>{s.value}</div>
-                <div style={{ fontSize: '11px', color: '#8892a4' }}>{s.label}</div>
+            {statItems.map(s => (
+              <div key={s.label} style={{ backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, borderRadius: R.sm, padding: '14px' }}>
+                <div style={{ marginBottom: '8px' }}><s.Icon size={20} strokeWidth={1.5} color={C.primary} /></div>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: C.textDark, marginBottom: '2px', fontFamily: theme.fonts.mono }}>{s.value}</div>
+                <div style={{ fontSize: '11px', color: C.textMuted }}>{s.label}</div>
               </div>
             ))}
           </div>
 
-          <div style={{ backgroundColor: 'rgba(79,110,247,0.06)', border: '1px solid rgba(79,110,247,0.15)', borderRadius: '8px', padding: '14px 16px', marginBottom: '24px', fontSize: '13px', color: '#8892a4', lineHeight: '1.6' }}>
-            💡 Pilih satu jawaban untuk setiap soal. Kamu bisa mengubah jawaban sebelum submit. Hasil langsung tampil setelah submit.
+          <div style={{ backgroundColor: C.primaryTint, border: `1px solid ${C.primaryBorder}`, borderRadius: R.sm, padding: '14px 16px', marginBottom: '24px', fontSize: '13px', color: C.textMuted, lineHeight: '1.6', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+            <Lightbulb size={14} strokeWidth={1.5} color={C.primary} style={{ flexShrink: 0, marginTop: '2px' }} />
+            Pilih satu jawaban untuk setiap soal. Kamu bisa mengubah jawaban sebelum submit. Hasil langsung tampil setelah submit.
           </div>
 
-          <button onClick={() => setPhase('quiz')} style={{ width: '100%', padding: '14px', backgroundColor: '#4F6EF7', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: 'pointer' }}>
+          <button onClick={() => setPhase('quiz')} style={{ width: '100%', padding: '14px', backgroundColor: C.primary, color: 'white', border: 'none', borderRadius: R.sm, fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
             Mulai Tes →
           </button>
         </div>
@@ -123,27 +131,25 @@ export default function SkillTestPage() {
 
   // ── QUIZ ──
   if (phase === 'quiz') return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
       <Navbar />
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: 'clamp(20px,4vw,40px) clamp(16px,4vw,32px) 80px' }}>
 
-        {/* Progress */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <span style={{ fontSize: '14px', color: '#8892a4' }}>{test.title}</span>
-          <span style={{ fontSize: '13px', color: '#4F6EF7', fontWeight: '600' }}>
+          <span style={{ fontSize: '14px', color: C.textMuted }}>{test.title}</span>
+          <span style={{ fontSize: '13px', color: C.primary, fontWeight: 600 }}>
             {Object.keys(answers).length}/{questions.length} dijawab
           </span>
         </div>
-        <div style={{ width: '100%', height: '3px', backgroundColor: '#1e2d4a', borderRadius: '2px', marginBottom: '32px', overflow: 'hidden' }}>
-          <div style={{ width: `${(Object.keys(answers).length / questions.length) * 100}%`, height: '100%', backgroundColor: '#4F6EF7', borderRadius: '2px', transition: 'width 0.3s' }} />
+        <div style={{ width: '100%', height: '3px', backgroundColor: C.bgLavenderStrong, borderRadius: '2px', marginBottom: '32px', overflow: 'hidden' }}>
+          <div style={{ width: `${(Object.keys(answers).length / questions.length) * 100}%`, height: '100%', backgroundColor: C.primary, borderRadius: '2px', transition: 'width 0.3s' }} />
         </div>
 
-        {/* Questions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {questions.map((q, idx) => (
-            <div key={q.id} style={{ backgroundColor: '#131929', border: `1px solid ${answers[q.id] !== undefined ? 'rgba(79,110,247,0.3)' : '#1e2d4a'}`, borderRadius: '12px', padding: '24px' }}>
-              <p style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', lineHeight: '1.5' }}>
-                <span style={{ color: '#4F6EF7', marginRight: '8px' }}>#{idx + 1}</span>
+            <div key={q.id} style={{ backgroundColor: C.bgWhite, border: `1px solid ${answers[q.id] !== undefined ? C.primaryBorder : C.border}`, borderRadius: R.md, padding: '24px', boxShadow: theme.shadow.card }}>
+              <p style={{ fontSize: '15px', fontWeight: 600, marginBottom: '16px', lineHeight: '1.5', color: C.textDark }}>
+                <span style={{ color: C.primary, marginRight: '8px' }}>#{idx + 1}</span>
                 {q.question}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -152,14 +158,14 @@ export default function SkillTestPage() {
                   return (
                     <button key={i} onClick={() => setAnswers(prev => ({ ...prev, [q.id]: i }))}
                       style={{
-                        padding: '12px 16px', borderRadius: '8px', textAlign: 'left', cursor: 'pointer',
-                        fontSize: '14px', border: '1px solid', fontWeight: selected ? '600' : '400',
-                        borderColor: selected ? '#4F6EF7' : '#1e2d4a',
-                        backgroundColor: selected ? 'rgba(79,110,247,0.12)' : '#0A0E1A',
-                        color: selected ? 'white' : 'rgba(255,255,255,0.7)',
+                        padding: '12px 16px', borderRadius: R.sm, textAlign: 'left', cursor: 'pointer',
+                        fontSize: '14px', border: '1px solid', fontWeight: selected ? 600 : 400,
+                        borderColor: selected ? C.primary : C.border,
+                        backgroundColor: selected ? C.primaryTint : C.bgLavenderSoft,
+                        color: selected ? C.textDark : C.textMuted,
                         transition: 'all 0.15s',
                       }}>
-                      <span style={{ color: selected ? '#4F6EF7' : '#8892a4', marginRight: '10px', fontWeight: '700' }}>
+                      <span style={{ color: selected ? C.primary : C.textTertiary, marginRight: '10px', fontWeight: 700 }}>
                         {String.fromCharCode(65 + i)}.
                       </span>
                       {opt}
@@ -171,10 +177,9 @@ export default function SkillTestPage() {
           ))}
         </div>
 
-        {/* Submit */}
-        <div style={{ position: 'sticky', bottom: 0, backgroundColor: '#0A0E1A', borderTop: '1px solid #1e2d4a', padding: '16px 0', marginTop: '32px' }}>
+        <div style={{ position: 'sticky', bottom: 0, backgroundColor: C.bgWhite, borderTop: `1px solid ${C.border}`, padding: '16px 0', marginTop: '32px' }}>
           <button onClick={handleSubmit} disabled={submitting}
-            style={{ width: '100%', padding: '14px', backgroundColor: submitting ? '#2a3a6a' : '#4F6EF7', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: submitting ? 'not-allowed' : 'pointer' }}>
+            style={{ width: '100%', padding: '14px', backgroundColor: submitting ? C.bgLavenderStrong : C.primary, color: submitting ? C.textMuted : 'white', border: 'none', borderRadius: R.sm, fontSize: '15px', fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer' }}>
             {submitting ? 'Menghitung...' : `Submit Jawaban (${Object.keys(answers).length}/${questions.length} dijawab)`}
           </button>
         </div>
@@ -186,73 +191,76 @@ export default function SkillTestPage() {
   if (!result) return null
   const passed = result.passed
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
       <Navbar />
       <div style={{ maxWidth: '680px', margin: '0 auto', padding: 'clamp(32px,6vw,60px) clamp(16px,4vw,32px) 80px' }}>
 
-        {/* Result card */}
-        <div style={{ backgroundColor: '#131929', border: `1px solid ${passed ? '#10B981' : '#EF4444'}`, borderRadius: '16px', padding: '36px', marginBottom: '24px', textAlign: 'center' }}>
-          <div style={{ fontSize: '56px', marginBottom: '16px' }}>{passed ? '🎉' : '😔'}</div>
-          <h1 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'Outfit, sans-serif', color: passed ? '#10B981' : '#EF4444' }}>
+        <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${passed ? C.success + '33' : STATUS_RED + '33'}`, borderRadius: R.md, padding: '36px', marginBottom: '24px', textAlign: 'center', boxShadow: theme.shadow.card }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+            {passed
+              ? <PartyPopper size={56} strokeWidth={1.5} color={C.success} />
+              : <span style={{ fontSize: '56px' }}>😔</span>
+            }
+          </div>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '8px', fontFamily: theme.fonts.headline, color: passed ? C.success : STATUS_RED }}>
             {passed ? 'Selamat, Kamu Lulus!' : 'Belum Lulus'}
           </h1>
-          <p style={{ color: '#8892a4', fontSize: '14px', marginBottom: '24px' }}>
-            {passed ? `Trust Score kamu naik +5 poin!` : `Nilai minimum lulus: ${test.passing_score}. Kamu bisa coba lagi.`}
+          <p style={{ color: C.textMuted, fontSize: '14px', marginBottom: '24px' }}>
+            {passed ? 'Trust Score kamu naik +5 poin!' : `Nilai minimum lulus: ${test.passing_score}. Kamu bisa coba lagi.`}
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', marginBottom: '24px' }}>
             <div>
-              <div style={{ fontSize: '40px', fontWeight: '800', color: passed ? '#10B981' : '#EF4444', fontFamily: 'Outfit, sans-serif' }}>{result.score}</div>
-              <div style={{ fontSize: '12px', color: '#8892a4' }}>Skor</div>
+              <div style={{ fontSize: '40px', fontWeight: 800, color: passed ? C.success : STATUS_RED, fontFamily: theme.fonts.mono }}>{result.score}</div>
+              <div style={{ fontSize: '12px', color: C.textMuted }}>Skor</div>
             </div>
             <div>
-              <div style={{ fontSize: '40px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>{result.correctCount}/{questions.length}</div>
-              <div style={{ fontSize: '12px', color: '#8892a4' }}>Benar</div>
+              <div style={{ fontSize: '40px', fontWeight: 800, color: C.textDark, fontFamily: theme.fonts.mono }}>{result.correctCount}/{questions.length}</div>
+              <div style={{ fontSize: '12px', color: C.textMuted }}>Benar</div>
             </div>
             {passed && (
               <div>
-                <div style={{ fontSize: '40px', fontWeight: '800', color: '#22D3EE', fontFamily: 'Outfit, sans-serif' }}>+5</div>
-                <div style={{ fontSize: '12px', color: '#8892a4' }}>Trust Score</div>
+                <div style={{ fontSize: '40px', fontWeight: 800, color: C.primary, fontFamily: theme.fonts.mono }}>+5</div>
+                <div style={{ fontSize: '12px', color: C.textMuted }}>Trust Score</div>
               </div>
             )}
           </div>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="/app/profil/skill-test" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: 'transparent', border: '1px solid #1e2d4a', color: '#8892a4', textDecoration: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600' }}>
+            <a href="/app/profil/skill-test" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, color: C.textMuted, textDecoration: 'none', borderRadius: R.sm, fontSize: '13px', fontWeight: 600 }}>
               ← Semua Skill Test
             </a>
             <button onClick={() => { setPhase('quiz'); setAnswers({}); setResult(null) }}
-              style={{ padding: '10px 20px', backgroundColor: '#4F6EF7', color: 'white', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+              style={{ padding: '10px 20px', backgroundColor: C.primary, color: 'white', border: 'none', borderRadius: R.sm, fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
               Ulangi Tes
             </button>
-            <a href="/app/profil" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: passed ? '#10B981' : 'transparent', color: 'white', textDecoration: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600', border: passed ? 'none' : '1px solid #1e2d4a' }}>
+            <a href="/app/profil" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: passed ? C.success : C.bgLavenderSoft, color: passed ? 'white' : C.textMuted, textDecoration: 'none', borderRadius: R.sm, fontSize: '13px', fontWeight: 600, border: passed ? 'none' : `1px solid ${C.border}` }}>
               Lihat Profil
             </a>
           </div>
         </div>
 
-        {/* Pembahasan */}
-        <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px' }}>Pembahasan Jawaban</h2>
+        <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '16px', color: C.textDark }}>Pembahasan Jawaban</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {questions.map((q, idx) => {
             const userAnswer = answers[q.id]
             const isCorrect = userAnswer === q.correct
             return (
-              <div key={q.id} style={{ backgroundColor: '#131929', border: `1px solid ${isCorrect ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`, borderRadius: '10px', padding: '20px' }}>
-                <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', lineHeight: '1.5' }}>
-                  <span style={{ color: isCorrect ? '#10B981' : '#EF4444', marginRight: '8px' }}>{isCorrect ? '✓' : '✗'}</span>
+              <div key={q.id} style={{ backgroundColor: C.bgWhite, border: `1px solid ${isCorrect ? C.success + '4D' : STATUS_RED + '4D'}`, borderRadius: R.sm, padding: '20px', boxShadow: theme.shadow.card }}>
+                <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px', lineHeight: '1.5', color: C.textDark }}>
+                  <span style={{ color: isCorrect ? C.success : STATUS_RED, marginRight: '8px' }}>{isCorrect ? '✓' : '✗'}</span>
                   #{idx + 1}. {q.question}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
                   {q.options.map((opt, i) => {
                     const isUserChoice = userAnswer === i
                     const isCorrectAns = q.correct === i
-                    let bg = 'transparent', border = '#1e2d4a', color = 'rgba(255,255,255,0.5)'
-                    if (isCorrectAns) { bg = 'rgba(16,185,129,0.1)'; border = '#10B981'; color = '#10B981' }
-                    else if (isUserChoice && !isCorrectAns) { bg = 'rgba(239,68,68,0.1)'; border = '#EF4444'; color = '#EF4444' }
+                    let bg = 'transparent', border = C.border, color = C.textMuted
+                    if (isCorrectAns) { bg = C.successTint; border = C.success + '66'; color = C.success }
+                    else if (isUserChoice && !isCorrectAns) { bg = STATUS_RED + '18'; border = STATUS_RED + '66'; color = STATUS_RED }
                     return (
-                      <div key={i} style={{ padding: '8px 12px', borderRadius: '6px', fontSize: '13px', border: `1px solid ${border}`, backgroundColor: bg, color }}>
-                        <span style={{ fontWeight: '700', marginRight: '8px' }}>{String.fromCharCode(65 + i)}.</span>
+                      <div key={i} style={{ padding: '8px 12px', borderRadius: R.sm, fontSize: '13px', border: `1px solid ${border}`, backgroundColor: bg, color }}>
+                        <span style={{ fontWeight: 700, marginRight: '8px' }}>{String.fromCharCode(65 + i)}.</span>
                         {opt}
                         {isCorrectAns && <span style={{ marginLeft: '8px', fontSize: '11px' }}>✓ Jawaban benar</span>}
                         {isUserChoice && !isCorrectAns && <span style={{ marginLeft: '8px', fontSize: '11px' }}>← Jawaban kamu</span>}
@@ -261,8 +269,9 @@ export default function SkillTestPage() {
                   })}
                 </div>
                 {q.explanation && (
-                  <div style={{ backgroundColor: 'rgba(79,110,247,0.06)', border: '1px solid rgba(79,110,247,0.15)', borderRadius: '6px', padding: '10px 12px', fontSize: '12px', color: '#8892a4', lineHeight: '1.6' }}>
-                    💡 {q.explanation}
+                  <div style={{ backgroundColor: C.primaryTint, border: `1px solid ${C.primaryBorder}`, borderRadius: R.sm, padding: '10px 12px', fontSize: '12px', color: C.textMuted, lineHeight: '1.6', display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                    <Lightbulb size={12} strokeWidth={1.5} color={C.primary} style={{ flexShrink: 0, marginTop: '2px' }} />
+                    {q.explanation}
                   </div>
                 )}
               </div>

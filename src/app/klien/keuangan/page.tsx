@@ -3,6 +3,13 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import NavbarKlien from '@/components/NavbarKlien'
+import { Calendar, CheckCircle, Clock, ClipboardList, Banknote, Wallet } from 'lucide-react'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
+
+const STATUS_RED   = '#EF4444'
+const STATUS_AMBER = '#F59E0B'
 
 function fmt(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
@@ -45,76 +52,80 @@ export default function KeuanganKlienPage() {
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   })
 
-  const totalBulanIni  = bulanIni.reduce((s: number, p: any) => s + (p.budget_max || 0), 0)
+  const totalBulanIni   = bulanIni.reduce((s: number, p: any) => s + (p.budget_max || 0), 0)
   const totalSudahBayar = sudahBayar.reduce((s: number, p: any) => s + (p.budget_max || 0), 0)
-  const totalMenunggu  = menunggu.reduce((s: number, p: any) => s + (p.budget_max || 0), 0)
+  const totalMenunggu   = menunggu.reduce((s: number, p: any) => s + (p.budget_max || 0), 0)
 
-  const stats = [
-    { icon: '📅', label: 'Pengeluaran Bulan Ini', value: fmt(totalBulanIni), color: '#EF4444' },
-    { icon: '✅', label: 'Sudah Dibayar',         value: fmt(totalSudahBayar), color: '#10B981' },
-    { icon: '⏳', label: 'Menunggu Proses',        value: fmt(totalMenunggu),  color: '#FBBF24' },
-    { icon: '📋', label: 'Total Proyek Aktif',     value: String(funded.length), color: '#4F6EF7' },
+  const statCards = [
+    { Icon: Calendar,      label: 'Pengeluaran Bulan Ini', value: fmt(totalBulanIni),    color: STATUS_RED,   iconBg: STATUS_RED + '18'   },
+    { Icon: CheckCircle,   label: 'Sudah Dibayar',         value: fmt(totalSudahBayar),  color: C.success,    iconBg: C.successTint        },
+    { Icon: Clock,         label: 'Menunggu Proses',        value: fmt(totalMenunggu),    color: STATUS_AMBER, iconBg: STATUS_AMBER + '18'  },
+    { Icon: ClipboardList, label: 'Total Proyek Aktif',     value: String(funded.length), color: C.primary,    iconBg: C.primaryTint        },
   ]
 
   const statusLabel: Record<string, { label: string; color: string; bg: string }> = {
-    in_progress: { label: 'Sedang Dikerjakan', color: '#4F6EF7', bg: 'rgba(79,110,247,0.1)' },
-    submitted:   { label: 'Menunggu Review',   color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)' },
-    revision:    { label: 'Perlu Revisi',      color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-    completed:   { label: 'Selesai ✓',        color: '#10B981', bg: 'rgba(16,185,129,0.1)'  },
+    in_progress: { label: 'Sedang Dikerjakan', color: C.primary,    bg: C.primaryTint        },
+    submitted:   { label: 'Menunggu Review',   color: C.primary,    bg: C.primaryTint        },
+    revision:    { label: 'Perlu Revisi',      color: STATUS_AMBER, bg: STATUS_AMBER + '18'  },
+    completed:   { label: 'Selesai ✓',        color: C.success,    bg: C.successTint         },
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
       <NavbarKlien />
       <div style={{ padding: 'clamp(20px,5vw,40px) clamp(16px,4vw,32px)', maxWidth: '1000px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '4px' }}>Keuangan</h1>
-        <p style={{ color: '#8892a4', marginBottom: '32px' }}>Pantau pengeluaran dan riwayat pembayaran proyekmu</p>
+        <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '4px', color: C.textDark, fontFamily: theme.fonts.headline }}>Keuangan</h1>
+        <p style={{ color: C.textMuted, marginBottom: '32px' }}>Pantau pengeluaran dan riwayat pembayaran proyekmu</p>
 
         {/* Stat cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px,1fr))', gap: '16px', marginBottom: '32px' }}>
-          {stats.map(s => (
-            <div key={s.label} style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px' }}>
-              <div style={{ fontSize: '24px', marginBottom: '8px' }}>{s.icon}</div>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: s.color, marginBottom: '4px' }}>{s.value}</div>
-              <div style={{ fontSize: '12px', color: '#8892a4' }}>{s.label}</div>
+          {statCards.map(s => (
+            <div key={s.label} style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px', boxShadow: theme.shadow.card }}>
+              <div style={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: s.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
+                <s.Icon size={20} strokeWidth={1.5} color={s.color} />
+              </div>
+              <div style={{ fontSize: '20px', fontWeight: 800, color: s.color, marginBottom: '4px', fontFamily: theme.fonts.mono }}>{s.value}</div>
+              <div style={{ fontSize: '12px', color: C.textMuted }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Riwayat */}
-        <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', overflow: 'hidden' }}>
-          <div style={{ padding: '20px 24px', borderBottom: '1px solid #1e2d4a', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: 'bold' }}>Riwayat Pembayaran</h2>
-            <a href="/klien/post-proyek" style={{ padding: '8px 16px', backgroundColor: '#4F6EF7', color: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', textDecoration: 'none' }}>
+        <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, overflow: 'hidden', boxShadow: theme.shadow.card }}>
+          <div style={{ padding: '20px 24px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, color: C.textDark, margin: 0 }}>Riwayat Pembayaran</h2>
+            <a href="/klien/post-proyek" style={{ padding: '8px 16px', backgroundColor: C.primary, color: 'white', borderRadius: R.sm, fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
               + Post Proyek Baru
             </a>
           </div>
           {loading ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#8892a4' }}>Memuat...</div>
+            <div style={{ padding: '40px', textAlign: 'center', color: C.textMuted }}>Memuat...</div>
           ) : funded.length === 0 ? (
-            <div style={{ padding: '48px', textAlign: 'center', color: '#8892a4' }}>
-              <div style={{ fontSize: '40px', marginBottom: '12px' }}>💳</div>
+            <div style={{ padding: '48px', textAlign: 'center', color: C.textMuted }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px', opacity: 0.3 }}>
+                <Wallet size={40} strokeWidth={1} color={C.textDark} />
+              </div>
               <p>Belum ada riwayat pembayaran.</p>
               <p style={{ fontSize: '13px', marginTop: '8px' }}>Pembayaran akan muncul setelah kamu mendanai proyek.</p>
             </div>
           ) : funded.map(p => {
-            const s = statusLabel[p.status] || { label: p.status, color: '#8892a4', bg: 'transparent' }
+            const s = statusLabel[p.status] || { label: p.status, color: C.textMuted, bg: C.bgLavenderSoft }
             return (
-              <div key={p.id} style={{ padding: '16px 24px', borderBottom: '1px solid #0d1526', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <div key={p.id} style={{ padding: '16px 24px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '8px', backgroundColor: '#2d1515', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
-                    💰
+                  <div style={{ width: 36, height: 36, borderRadius: R.sm, backgroundColor: C.primaryTint, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Banknote size={16} strokeWidth={1.5} color={C.primary} />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{p.title}</div>
-                    <div style={{ color: '#8892a4', fontSize: '12px' }}>
+                    <div style={{ fontWeight: 600, fontSize: '14px', color: C.textDark }}>{p.title}</div>
+                    <div style={{ color: C.textMuted, fontSize: '12px' }}>
                       {p.category} · {p.funded_at ? new Date(p.funded_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                     </div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#EF4444' }}>-{fmt(p.budget_max || 0)}</div>
-                  <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', backgroundColor: s.bg, color: s.color, fontWeight: '600' }}>
+                  <div style={{ fontWeight: 700, fontSize: '15px', color: STATUS_RED, fontFamily: theme.fonts.mono }}>-{fmt(p.budget_max || 0)}</div>
+                  <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', backgroundColor: s.bg, color: s.color, fontWeight: 600 }}>
                     {s.label}
                   </span>
                 </div>
