@@ -1,10 +1,14 @@
 'use client'
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { MapPin } from 'lucide-react'
+import { MapPin, User, Calendar, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import Navbar from '@/components/Navbar'
 import NavbarKlien from '@/components/NavbarKlien'
+import { theme } from '@/lib/theme'
+
+const { colors: C, radius: R } = theme
+const STATUS_RED = '#EF4444'
 
 type Project = {
   id: string; title: string; description: string; category: string
@@ -30,28 +34,28 @@ function timeAgo(dateStr: string) {
 }
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-  open:        { label: 'Menerima Lamaran', color: '#4F6EF7', bg: 'rgba(79,110,247,0.12)' },
-  in_progress: { label: 'Sedang Berjalan',  color: '#10B981', bg: 'rgba(16,185,129,0.12)' },
-  completed:   { label: 'Selesai',          color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)' },
-  cancelled:   { label: 'Dibatalkan',       color: '#EF4444', bg: 'rgba(239,68,68,0.12)'  },
+  open:        { label: 'Menerima Lamaran', color: C.primary,  bg: C.primaryTint  },
+  in_progress: { label: 'Sedang Berjalan',  color: C.success,  bg: C.successTint  },
+  completed:   { label: 'Selesai',          color: C.primary,  bg: C.primaryTint  },
+  cancelled:   { label: 'Dibatalkan',       color: STATUS_RED, bg: STATUS_RED + '18' },
 }
 
 const navLinkStyle: CSSProperties = {
-  color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: '500',
+  color: C.textMuted, textDecoration: 'none', fontSize: '14px', fontWeight: '500',
 }
 
 function PublicNavbar() {
   return (
-    <div style={{ backgroundColor: 'rgba(10,14,26,0.95)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
+    <div style={{ backgroundColor: C.bgWhite, borderBottom: `1px solid ${C.border}`, padding: '0 clamp(16px, 4vw, 32px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
       <a href="/" style={{ textDecoration: 'none' }}>
-        <span style={{ fontSize: '20px', fontWeight: '800', color: 'white', fontFamily: 'Outfit, sans-serif' }}>Gawe</span>
+        <span style={{ fontSize: '20px', fontWeight: '800', color: C.primary, fontFamily: theme.fonts.headline }}>Gawe</span>
       </a>
       <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
         <a href="/#cara-kerja" style={navLinkStyle}>Cara Kerja</a>
-        <a href="/proyek" style={{ ...navLinkStyle, color: 'white', fontWeight: '600' }}>Proyek</a>
+        <a href="/proyek" style={{ ...navLinkStyle, color: C.primary, fontWeight: '600' }}>Proyek</a>
         <a href="/auth/masuk" style={navLinkStyle}>Masuk</a>
-        <div style={{ width: 1, height: 20, backgroundColor: 'rgba(255,255,255,0.1)' }} />
-        <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: '8px' }}>
+        <div style={{ width: 1, height: 20, backgroundColor: C.border }} />
+        <a href="/auth/daftar" style={{ backgroundColor: C.primary, color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: R.sm }}>
           Daftar Gratis
         </a>
       </div>
@@ -117,7 +121,7 @@ export default function ProyekDetailClient({
   const joinYear = clientProfile ? new Date(clientProfile.created_at).getFullYear() : null
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
 
       {/* Navbar */}
       {loadingAuth
@@ -133,11 +137,11 @@ export default function ProyekDetailClient({
       {!loadingAuth && (
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px clamp(16px, 4vw, 32px) 0' }}>
           {userRole === 'freelancer' || userRole === 'both' ? (
-            <a href="/app/jelajah" style={{ color: '#8892a4', textDecoration: 'none', fontSize: '13px' }}>
+            <a href="/app/jelajah" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '13px' }}>
               ← Jelajah Proyek
             </a>
           ) : (
-            <a href="/proyek" style={{ color: '#8892a4', textDecoration: 'none', fontSize: '13px' }}>
+            <a href="/proyek" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '13px' }}>
               ← Semua Proyek
             </a>
           )}
@@ -151,47 +155,53 @@ export default function ProyekDetailClient({
         <div>
           <div style={{ marginBottom: '28px' }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
-              <span style={{ backgroundColor: '#1a2340', color: '#4F6EF7', fontSize: '12px', padding: '4px 12px', borderRadius: '20px', fontWeight: '600' }}>
+              <span style={{ backgroundColor: C.primaryTint, color: C.primary, fontSize: '12px', padding: '4px 12px', borderRadius: R.pill, fontWeight: '600', border: `1px solid ${C.primaryBorder}` }}>
                 {project.category}
               </span>
-              <span style={{ backgroundColor: st.bg, color: st.color, fontSize: '12px', padding: '4px 12px', borderRadius: '20px', fontWeight: '600' }}>
+              <span style={{ backgroundColor: st.bg, color: st.color, fontSize: '12px', padding: '4px 12px', borderRadius: R.pill, fontWeight: '600' }}>
                 {st.label}
               </span>
             </div>
-            <h1 style={{ fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: '800', lineHeight: '1.2', marginBottom: '12px', fontFamily: 'Outfit, sans-serif' }}>
+            <h1 style={{ fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: '800', lineHeight: '1.2', marginBottom: '12px', fontFamily: theme.fonts.headline, color: C.textDark }}>
               {project.title}
             </h1>
-            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: '#8892a4' }}>
-              <span>👤 {clientProfile?.full_name || 'Klien'}</span>
-              <span>📅 Dipost {timeAgo(project.created_at)}</span>
-              <span>👥 {pelamarCount} pelamar</span>
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', fontSize: '13px', color: C.textMuted, alignItems: 'center' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <User size={13} strokeWidth={1.5} /> {clientProfile?.full_name || 'Klien'}
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Calendar size={13} strokeWidth={1.5} /> Dipost {timeAgo(project.created_at)}
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Users size={13} strokeWidth={1.5} /> {pelamarCount} pelamar
+              </span>
             </div>
           </div>
 
-          <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px 24px', marginBottom: '24px', display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
+          <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px 24px', marginBottom: '24px', display: 'flex', gap: '32px', flexWrap: 'wrap', boxShadow: theme.shadow.card }}>
             <div>
-              <div style={{ fontSize: '12px', color: '#8892a4', marginBottom: '4px' }}>Budget</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: '#22D3EE' }}>
+              <div style={{ fontSize: '12px', color: C.textMuted, marginBottom: '4px' }}>Budget</div>
+              <div style={{ fontSize: '20px', fontWeight: '700', color: C.primary, fontFamily: theme.fonts.mono }}>
                 {fmt(project.budget_min)} – {fmt(project.budget_max)}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '12px', color: '#8892a4', marginBottom: '4px' }}>Estimasi Waktu</div>
-              <div style={{ fontSize: '20px', fontWeight: '700', color: 'white' }}>{project.estimated_days} hari</div>
+              <div style={{ fontSize: '12px', color: C.textMuted, marginBottom: '4px' }}>Estimasi Waktu</div>
+              <div style={{ fontSize: '20px', fontWeight: '700', color: C.textDark }}>{project.estimated_days} hari</div>
             </div>
           </div>
 
-          <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '24px', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>Deskripsi Proyek</h2>
-            <p style={{ color: '#c4cdd6', fontSize: '14px', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>{project.description}</p>
+          <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '24px', marginBottom: '24px', boxShadow: theme.shadow.card }}>
+            <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: C.textDark }}>Deskripsi Proyek</h2>
+            <p style={{ color: C.textDark, fontSize: '14px', lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>{project.description}</p>
           </div>
 
           {(project.skills_required || []).length > 0 && (
-            <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '24px' }}>
-              <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px' }}>Skills yang Dibutuhkan</h2>
+            <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '24px', boxShadow: theme.shadow.card }}>
+              <h2 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '16px', color: C.textDark }}>Skills yang Dibutuhkan</h2>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {project.skills_required.map(skill => (
-                  <span key={skill} style={{ backgroundColor: 'rgba(79,110,247,0.08)', border: '1px solid rgba(79,110,247,0.2)', color: '#4F6EF7', fontSize: '13px', padding: '6px 14px', borderRadius: '20px', fontWeight: '500' }}>
+                  <span key={skill} style={{ backgroundColor: C.primaryTint, border: `1px solid ${C.primaryBorder}`, color: C.primary, fontSize: '13px', padding: '6px 14px', borderRadius: R.pill, fontWeight: '500' }}>
                     {skill}
                   </span>
                 ))}
@@ -204,100 +214,100 @@ export default function ProyekDetailClient({
         <div style={{ position: 'sticky', top: '84px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
           {/* Card: budget + lamar */}
-          <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '16px', padding: '24px' }}>
-            <div style={{ fontSize: '22px', fontWeight: '800', color: '#22D3EE', fontFamily: 'Outfit, sans-serif', marginBottom: '4px' }}>
+          <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.lg, padding: '24px', boxShadow: theme.shadow.card }}>
+            <div style={{ fontSize: '22px', fontWeight: '800', color: C.primary, fontFamily: theme.fonts.mono, marginBottom: '4px' }}>
               {fmt(project.budget_min)}
             </div>
-            <div style={{ fontSize: '13px', color: '#8892a4', marginBottom: '20px' }}>
+            <div style={{ fontSize: '13px', color: C.textMuted, marginBottom: '20px' }}>
               s.d. {fmt(project.budget_max)} · {project.estimated_days} hari
             </div>
 
             {sudahDilamar || applied ? (
-              <div style={{ width: '100%', padding: '14px', backgroundColor: 'rgba(16,185,129,0.1)', border: '1px solid #10B981', borderRadius: '10px', color: '#10B981', fontWeight: '700', fontSize: '15px', textAlign: 'center' }}>
+              <div style={{ width: '100%', padding: '14px', backgroundColor: C.successTint, border: `1px solid ${C.success}33`, borderRadius: R.sm, color: C.success, fontWeight: '700', fontSize: '15px', textAlign: 'center' }}>
                 ✓ Sudah Dilamar
               </div>
             ) : project.status !== 'open' ? (
-              <div style={{ width: '100%', padding: '14px', backgroundColor: '#0A0E1A', border: '1px solid #1e2d4a', borderRadius: '10px', color: '#8892a4', fontSize: '14px', textAlign: 'center' }}>
+              <div style={{ width: '100%', padding: '14px', backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, borderRadius: R.sm, color: C.textMuted, fontSize: '14px', textAlign: 'center' }}>
                 Proyek tidak lagi menerima lamaran
               </div>
             ) : user ? (
               <button onClick={handleLamar} disabled={applying}
-                style={{ width: '100%', padding: '14px', backgroundColor: applying ? '#2a3a6a' : '#4F6EF7', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '15px', cursor: applying ? 'not-allowed' : 'pointer' }}>
+                style={{ width: '100%', padding: '14px', backgroundColor: applying ? C.bgLavenderStrong : C.primary, color: applying ? C.textMuted : 'white', border: 'none', borderRadius: R.sm, fontWeight: '700', fontSize: '15px', cursor: applying ? 'not-allowed' : 'pointer' }}>
                 {applying ? 'Mengirim...' : 'Lamar Proyek'}
               </button>
             ) : (
               <a href="/auth/masuk"
-                style={{ display: 'block', width: '100%', padding: '14px', backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '15px', textAlign: 'center', boxSizing: 'border-box' }}>
+                style={{ display: 'block', width: '100%', padding: '14px', backgroundColor: C.primary, color: 'white', textDecoration: 'none', borderRadius: R.sm, fontWeight: '700', fontSize: '15px', textAlign: 'center', boxSizing: 'border-box' }}>
                 Masuk untuk Melamar
               </a>
             )}
 
             {!user && !loadingAuth && (
-              <p style={{ textAlign: 'center', fontSize: '12px', color: '#8892a4', marginTop: '12px' }}>
+              <p style={{ textAlign: 'center', fontSize: '12px', color: C.textMuted, marginTop: '12px' }}>
                 Belum punya akun?{' '}
-                <a href="/auth/daftar" style={{ color: '#4F6EF7', textDecoration: 'none' }}>Daftar gratis</a>
+                <a href="/auth/daftar" style={{ color: C.primary, textDecoration: 'none' }}>Daftar gratis</a>
               </p>
             )}
 
-            <hr style={{ border: 'none', borderTop: '1px solid #1e2d4a', margin: '20px 0' }} />
+            <hr style={{ border: 'none', borderTop: `1px solid ${C.border}`, margin: '20px 0' }} />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: '#8892a4' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: C.textMuted }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Kategori</span>
-                <span style={{ color: 'white', fontWeight: '500' }}>{project.category}</span>
+                <span style={{ color: C.textDark, fontWeight: '500' }}>{project.category}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Pelamar</span>
-                <span style={{ color: 'white', fontWeight: '500' }}>{pelamarCount} orang</span>
+                <span style={{ color: C.textDark, fontWeight: '500' }}>{pelamarCount} orang</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Dipost</span>
-                <span style={{ color: 'white', fontWeight: '500' }}>{timeAgo(project.created_at)}</span>
+                <span style={{ color: C.textDark, fontWeight: '500' }}>{timeAgo(project.created_at)}</span>
               </div>
             </div>
           </div>
 
           {/* Card: Tentang Klien */}
           {clientProfile && (
-            <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '20px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.4)', fontWeight: '500', marginBottom: '12px', textTransform: 'uppercase' }}>
+            <div style={{ backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px' }}>
+              <div style={{ fontSize: '11px', letterSpacing: '0.08em', color: C.textMuted, fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase' }}>
                 Tentang Klien
               </div>
 
-              <div style={{ fontSize: '15px', fontWeight: '600', color: 'white', marginBottom: '4px' }}>
+              <div style={{ fontSize: '15px', fontWeight: '600', color: C.textDark, marginBottom: '4px' }}>
                 {clientProfile.full_name}
               </div>
 
               {clientProfile.city && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: C.textMuted, marginBottom: '4px' }}>
                   <MapPin size={12} strokeWidth={1.5} />
                   {clientProfile.city}
                 </div>
               )}
 
-              <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', margin: '12px 0' }} />
+              <div style={{ height: '1px', background: C.border, margin: '12px 0' }} />
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#22D3EE' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: C.primary, fontFamily: theme.fonts.mono }}>
                     {clientCompletedProjects}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Proyek Selesai</div>
+                  <div style={{ fontSize: '11px', color: C.textMuted }}>Proyek Selesai</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '18px', fontWeight: '700', color: '#22D3EE' }}>
+                  <div style={{ fontSize: '18px', fontWeight: '700', color: C.primary, fontFamily: theme.fonts.mono }}>
                     {joinYear}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>Bergabung</div>
+                  <div style={{ fontSize: '11px', color: C.textMuted }}>Bergabung</div>
                 </div>
               </div>
 
               {clientCompletedProjects > 0 ? (
-                <span style={{ backgroundColor: 'rgba(16,185,129,0.1)', color: '#10B981', borderRadius: '20px', padding: '3px 10px', fontSize: '12px' }}>
+                <span style={{ backgroundColor: C.successTint, color: C.success, borderRadius: R.pill, padding: '3px 10px', fontSize: '12px', fontWeight: '600' }}>
                   ✓ Klien Aktif
                 </span>
               ) : (
-                <span style={{ backgroundColor: 'rgba(245,158,11,0.1)', color: '#F59E0B', borderRadius: '20px', padding: '3px 10px', fontSize: '12px' }}>
+                <span style={{ backgroundColor: '#F59E0B18', color: '#F59E0B', borderRadius: R.pill, padding: '3px 10px', fontSize: '12px', fontWeight: '600' }}>
                   Klien Baru
                 </span>
               )}
@@ -308,12 +318,15 @@ export default function ProyekDetailClient({
       </div>
 
       {!user && !loadingAuth && (
-        <div style={{ backgroundColor: '#131929', borderTop: '1px solid #1e2d4a', padding: '40px clamp(16px, 4vw, 32px)', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>Mau lamar proyek ini?</h2>
-          <p style={{ color: '#8892a4', marginBottom: '20px', fontSize: '14px' }}>Daftar gratis di Gawe dan mulai bangun karirmu.</p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="/auth/daftar" style={{ backgroundColor: '#4F6EF7', color: 'white', textDecoration: 'none', padding: '12px 28px', borderRadius: '8px', fontWeight: '700', fontSize: '14px' }}>Daftar Gratis</a>
-            <a href="/auth/masuk" style={{ backgroundColor: 'transparent', color: 'white', textDecoration: 'none', padding: '12px 28px', borderRadius: '8px', fontWeight: '600', fontSize: '14px', border: '1px solid rgba(255,255,255,0.15)' }}>Sudah punya akun</a>
+        <div style={{ position: 'relative', overflow: 'hidden', background: C.meshBase, borderTop: `1px solid rgba(255,255,255,0.06)`, padding: '40px clamp(16px, 4vw, 32px)', textAlign: 'center' }}>
+          <div style={{ position: 'absolute', top: '-20%', right: '-20%', bottom: '-20%', left: '-20%', background: theme.gradients.darkMesh, filter: 'blur(40px)', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px', color: 'white', fontFamily: theme.fonts.headline }}>Mau lamar proyek ini?</h2>
+            <p style={{ color: 'rgba(255,255,255,0.55)', marginBottom: '20px', fontSize: '14px' }}>Daftar gratis di Gawe dan mulai bangun karirmu.</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="/auth/daftar" style={{ backgroundColor: 'white', color: C.primary, textDecoration: 'none', padding: '12px 28px', borderRadius: R.sm, fontWeight: '700', fontSize: '14px' }}>Daftar Gratis</a>
+              <a href="/auth/masuk" style={{ backgroundColor: 'transparent', color: 'white', textDecoration: 'none', padding: '12px 28px', borderRadius: R.sm, fontWeight: '600', fontSize: '14px', border: '1px solid rgba(255,255,255,0.3)' }}>Sudah punya akun</a>
+            </div>
           </div>
         </div>
       )}

@@ -3,7 +3,11 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 import NavbarKlien from '@/components/NavbarKlien'
+import { Star, Sparkles } from 'lucide-react'
+import { theme } from '@/lib/theme'
 
+const { colors: C, radius: R } = theme
+const STAR_AMBER = '#FBBF24'
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
 
 export default function RatingPage() {
@@ -59,42 +63,46 @@ export default function RatingPage() {
   }
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Memuat...</div>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.textMuted, fontFamily: theme.fonts.body }}>
+      Memuat...
+    </div>
   )
 
   const activeStar = hoverStar || selectedStar
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0A0E1A', fontFamily: 'sans-serif', color: 'white' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
       <NavbarKlien />
       <div style={{ maxWidth: '560px', margin: '0 auto', padding: 'clamp(24px,5vw,48px) clamp(16px,4vw,32px) 80px' }}>
 
-        <a href="/klien/proyek" style={{ color: '#8892a4', textDecoration: 'none', fontSize: '13px' }}>← Kembali ke Proyekku</a>
+        <a href="/klien/proyek" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '13px' }}>← Kembali ke Proyekku</a>
 
         {done ? (
           <div style={{ textAlign: 'center', marginTop: '60px' }}>
-            <div style={{ fontSize: '56px', marginBottom: '16px' }}>🌟</div>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#10B981', marginBottom: '8px', fontFamily: 'Outfit, sans-serif' }}>Rating Terkirim!</h1>
-            <p style={{ color: '#8892a4', fontSize: '14px' }}>Terima kasih sudah memberi ulasan. Mengalihkan...</p>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <Sparkles size={56} strokeWidth={1.5} color={C.success} />
+            </div>
+            <h1 style={{ fontSize: '24px', fontWeight: '800', color: C.success, marginBottom: '8px', fontFamily: theme.fonts.headline }}>Rating Terkirim!</h1>
+            <p style={{ color: C.textMuted, fontSize: '14px' }}>Terima kasih sudah memberi ulasan. Mengalihkan...</p>
           </div>
         ) : (
           <>
-            <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '16px 0 4px', fontFamily: 'Outfit, sans-serif' }}>Beri Rating Freelancer</h1>
-            <p style={{ color: '#8892a4', fontSize: '14px', marginBottom: '28px' }}>Bagikan pengalamanmu bekerja sama.</p>
+            <h1 style={{ fontSize: '24px', fontWeight: '800', margin: '16px 0 4px', fontFamily: theme.fonts.headline, color: C.textDark }}>Beri Rating Freelancer</h1>
+            <p style={{ color: C.textMuted, fontSize: '14px', marginBottom: '28px' }}>Bagikan pengalamanmu bekerja sama.</p>
 
             {/* Project info */}
-            <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '20px 24px', marginBottom: '24px' }}>
-              <span style={{ backgroundColor: '#1a2340', color: '#4F6EF7', fontSize: '11px', padding: '2px 8px', borderRadius: '20px' }}>{project?.category}</span>
-              <h2 style={{ fontSize: '17px', fontWeight: '700', margin: '8px 0 4px' }}>{project?.title}</h2>
-              <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#8892a4' }}>
-                <span>{fmt(project?.budget_max || 0)}</span>
-                {freelancer && <span>👤 {freelancer}</span>}
+            <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px 24px', marginBottom: '24px', boxShadow: theme.shadow.card }}>
+              <span style={{ backgroundColor: C.primaryTint, color: C.primary, fontSize: '11px', padding: '2px 8px', borderRadius: R.pill }}>{project?.category}</span>
+              <h2 style={{ fontSize: '17px', fontWeight: '700', margin: '8px 0 4px', color: C.textDark }}>{project?.title}</h2>
+              <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: C.textMuted }}>
+                <span style={{ fontFamily: theme.fonts.mono }}>{fmt(project?.budget_max || 0)}</span>
+                {freelancer && <span>{freelancer}</span>}
               </div>
             </div>
 
             {/* Star selector */}
-            <div style={{ backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '12px', padding: '28px 24px', marginBottom: '20px', textAlign: 'center' }}>
-              <p style={{ color: '#8892a4', fontSize: '13px', marginBottom: '16px' }}>Seberapa puas kamu dengan hasil kerja {freelancer || 'freelancer'} ini?</p>
+            <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '28px 24px', marginBottom: '20px', textAlign: 'center', boxShadow: theme.shadow.card }}>
+              <p style={{ color: C.textMuted, fontSize: '13px', marginBottom: '16px' }}>Seberapa puas kamu dengan hasil kerja {freelancer || 'freelancer'} ini?</p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
                 {[1, 2, 3, 4, 5].map(star => (
                   <button
@@ -102,14 +110,19 @@ export default function RatingPage() {
                     onClick={() => setSelectedStar(star)}
                     onMouseEnter={() => setHoverStar(star)}
                     onMouseLeave={() => setHoverStar(0)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '36px', padding: '4px', lineHeight: 1, transition: 'transform 0.1s', transform: activeStar >= star ? 'scale(1.15)' : 'scale(1)' }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', lineHeight: 1, transition: 'transform 0.1s', transform: activeStar >= star ? 'scale(1.15)' : 'scale(1)' }}
                   >
-                    {activeStar >= star ? '⭐' : '☆'}
+                    <Star
+                      size={32}
+                      strokeWidth={1.5}
+                      fill={activeStar >= star ? STAR_AMBER : 'none'}
+                      color={activeStar >= star ? STAR_AMBER : C.border}
+                    />
                   </button>
                 ))}
               </div>
               {selectedStar > 0 && (
-                <p style={{ color: '#FBBF24', fontSize: '13px', fontWeight: '600' }}>
+                <p style={{ color: STAR_AMBER, fontSize: '13px', fontWeight: '600' }}>
                   {['', 'Mengecewakan', 'Kurang memuaskan', 'Cukup baik', 'Bagus!', 'Luar biasa! 🎉'][selectedStar]}
                 </p>
               )}
@@ -117,20 +130,20 @@ export default function RatingPage() {
 
             {/* Comment */}
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ fontSize: '13px', color: '#8892a4', display: 'block', marginBottom: '8px' }}>Komentar (opsional)</label>
+              <label style={{ fontSize: '13px', color: C.textMuted, display: 'block', marginBottom: '8px' }}>Komentar (opsional)</label>
               <textarea
                 value={comment}
                 onChange={e => setComment(e.target.value)}
                 placeholder="Ceritakan pengalamanmu bekerja sama dengan freelancer ini..."
-                style={{ width: '100%', padding: '12px 14px', backgroundColor: '#131929', border: '1px solid #1e2d4a', borderRadius: '8px', color: 'white', fontSize: '13px', outline: 'none', resize: 'vertical', minHeight: '90px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '12px 14px', backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, borderRadius: R.sm, color: C.textDark, fontSize: '13px', outline: 'none', resize: 'vertical', minHeight: '90px', boxSizing: 'border-box' }}
               />
             </div>
 
             <button
               onClick={handleSubmit}
               disabled={!selectedStar || submitting}
-              style={{ width: '100%', padding: '14px', backgroundColor: selectedStar && !submitting ? '#4F6EF7' : '#1e2d4a', color: selectedStar ? 'white' : '#8892a4', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '700', cursor: selectedStar && !submitting ? 'pointer' : 'not-allowed' }}>
-              {submitting ? 'Mengirim...' : 'Kirim Rating ⭐'}
+              style={{ width: '100%', padding: '14px', backgroundColor: selectedStar && !submitting ? C.primary : C.bgLavenderStrong, color: selectedStar ? 'white' : C.textMuted, border: 'none', borderRadius: R.sm, fontSize: '15px', fontWeight: '700', cursor: selectedStar && !submitting ? 'pointer' : 'not-allowed' }}>
+              {submitting ? 'Mengirim...' : 'Kirim Rating'}
             </button>
           </>
         )}
