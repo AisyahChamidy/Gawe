@@ -43,6 +43,20 @@ export default function ReviewPage() {
       status: 'completed',
       completed_at: new Date().toISOString(),
     }).eq('id', projectId)
+    // Trigger #2 — notifikasi ke freelancer, silent jika gagal
+    try {
+      if (project?.selected_freelancer_id) {
+        await supabase.from('notifications').insert({
+          user_id: project.selected_freelancer_id,
+          type: 'project_completed',
+          title: 'Proyek selesai',
+          body: `Klien telah menyetujui hasil kerja untuk "${project.title}". Pembayaran sedang diproses.`,
+          action_url: '/app/lamaran',
+        })
+      }
+    } catch (e) {
+      console.error('[notif] gagal insert project_completed:', e)
+    }
     setProject((p: any) => ({ ...p, status: 'completed' }))
     setAction('idle')
   }

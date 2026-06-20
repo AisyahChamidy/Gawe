@@ -12,7 +12,7 @@ const { colors: C, radius: R } = theme
 const STATUS_RED   = '#EF4444'
 
 const KATEGORI = ['Semua','Desain Grafis','Web Development','Social Media','Penulisan Konten','Video Editing','UI/UX Design','Terjemahan','Data Entry','Lainnya']
-type Project = { id: string; title: string; description: string; category: string; budget_min: number; budget_max: number; estimated_days: number; skills_required: string[]; created_at: string }
+type Project = { id: string; client_id: string; title: string; description: string; category: string; budget_min: number; budget_max: number; estimated_days: number; skills_required: string[]; created_at: string }
 const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
 
 function MatchBadge({ score }: { score: number }) {
@@ -162,6 +162,20 @@ export default function JelajahPage() {
     if (!error) {
       setAppliedIds(prev => [...prev, selectedProject.id])
       closeModal()
+      // Trigger #3 — notifikasi ke klien, silent jika gagal
+      try {
+        if (selectedProject.client_id) {
+          await supabase.from('notifications').insert({
+            user_id: selectedProject.client_id,
+            type: 'new_application',
+            title: 'Lamaran baru masuk',
+            body: `Ada lamaran baru untuk proyek "${selectedProject.title}".`,
+            action_url: '/klien/proyek',
+          })
+        }
+      } catch (e) {
+        console.error('[notif] gagal insert new_application:', e)
+      }
     }
     setApplyingId(null)
   }

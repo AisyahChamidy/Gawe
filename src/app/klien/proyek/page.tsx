@@ -177,6 +177,19 @@ export default function KlienProyekPage() {
     setActionLoading(appId)
     await supabase.from('applications').update({ status: 'accepted' }).eq('id', appId)
     await supabase.from('projects').update({ status: 'in_review', selected_freelancer_id: freelancerId }).eq('id', projectId)
+    // Trigger #1 — notifikasi ke freelancer, silent jika gagal
+    try {
+      const projectTitle = projects.find(p => p.id === projectId)?.title || 'proyek'
+      await supabase.from('notifications').insert({
+        user_id: freelancerId,
+        type: 'application_accepted',
+        title: 'Lamaran diterima',
+        body: `Lamaranmu untuk "${projectTitle}" telah diterima oleh klien.`,
+        action_url: '/app/lamaran',
+      })
+    } catch (e) {
+      console.error('[notif] gagal insert application_accepted:', e)
+    }
     await fetchProjects()
     setActionLoading(null)
   }

@@ -7,6 +7,17 @@ import { theme } from '@/lib/theme'
 
 const { colors: C, radius: R } = theme
 
+type Notif = { id: string; type: string; title: string; body: string; action_url: string | null; read_at: string | null; created_at: string }
+
+function relTime(d: string): string {
+  const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000)
+  if (m < 2) return 'Baru saja'
+  if (m < 60) return `${m} menit lalu`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h} jam lalu`
+  return `${Math.floor(h / 24)} hari lalu`
+}
+
 export default function NavbarKlien() {
   const [firstName, setFirstName] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
@@ -15,6 +26,8 @@ export default function NavbarKlien() {
   const [aktivasi, setAktivasi] = useState(false)
   const [showBell, setShowBell] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [notifications, setNotifications] = useState<Notif[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
@@ -28,6 +41,16 @@ export default function NavbarKlien() {
       const name = profile?.full_name || user.user_metadata?.full_name || user.email || ''
       setFirstName(name.split(' ')[0])
       setUserRole(profile?.role || 'client')
+      const { data: notifs } = await supabase
+        .from('notifications')
+        .select('id, type, title, body, action_url, read_at, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
+      if (notifs) {
+        setNotifications(notifs)
+        setUnreadCount(notifs.filter((n: Notif) => !n.read_at).length)
+      }
     }
     loadUser()
   }, [])
@@ -36,6 +59,17 @@ export default function NavbarKlien() {
     await supabase.auth.signOut()
     router.push('/')
     router.refresh()
+  }
+
+  async function handleNotifClick(n: Notif) {
+    if (!n.read_at) {
+      const now = new Date().toISOString()
+      await supabase.from('notifications').update({ read_at: now }).eq('id', n.id)
+      setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read_at: now } : x))
+      setUnreadCount(prev => Math.max(0, prev - 1))
+    }
+    setShowBell(false)
+    if (n.action_url) router.push(n.action_url)
   }
 
   async function handleKeFreelancer() {
@@ -83,9 +117,9 @@ export default function NavbarKlien() {
       `}</style>
 
       {/* Click-outside overlay to close drawer */}
-      {showMenu && (
+      {(showMenu || showBell) && (
         <div
-          onClick={() => setShowMenu(false)}
+          onClick={() => { setShowMenu(false); setShowBell(false) }}
           style={{ position: 'fixed', inset: 0, zIndex: 48, background: 'transparent' }}
         />
       )}
@@ -200,17 +234,38 @@ export default function NavbarKlien() {
 
           {/* Bell */}
           <div style={{ position: 'relative' }}>
-            <button onClick={() => setShowBell(b => !b)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: C.textMuted }}>
+            <button onClick={() => setShowBell(b => !b)} style={{ position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: C.textMuted }}>
               <Bell size={17} strokeWidth={1.8} />
+              {unreadCount > 0 && (
+                <span style={{ position: 'absolute', top: 0, right: 0, backgroundColor: '#EF4444', color: 'white', fontSize: '9px', fontWeight: 700, minWidth: 14, height: 14, borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px', pointerEvents: 'none' }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </button>
             {showBell && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                backgroundColor: C.bgWhite, border: `1px solid ${C.border}`,
-                borderRadius: R.md, padding: '16px', width: '240px',
-                zIndex: 200, boxShadow: theme.shadow.hover,
-              }}>
-                <p style={{ fontSize: '13px', color: C.textMuted, textAlign: 'center' }}>🔔 Sistem notifikasi akan segera hadir</p>
+              <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, width: '320px', zIndex: 200, boxShadow: theme.shadow.hover, overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', borderBottom: `1px solid ${C.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: C.textDark }}>Notifikasi</span>
+                  {unreadCount > 0 && <span style={{ fontSize: '11px', color: C.primary, fontWeight: 600 }}>{unreadCount} baru</span>}
+                </div>
+                {notifications.length === 0 ? (
+                  <p style={{ fontSize: '13px', color: C.textMuted, textAlign: 'center', padding: '20px 16px', margin: 0 }}>Belum ada notifikasi</p>
+                ) : (
+                  notifications.map(n => (
+                    <div key={n.id} onClick={() => handleNotifClick(n)}
+                      style={{ padding: '12px 16px', backgroundColor: n.read_at ? C.bgWhite : C.bgLavenderSoft, cursor: 'pointer', borderBottom: `1px solid ${C.border}`, display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <div style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: n.read_at ? 'transparent' : C.primary, flexShrink: 0, marginTop: '5px' }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: '13px', fontWeight: n.read_at ? 400 : 600, color: C.textDark, margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.title}</p>
+                        <p style={{ fontSize: '12px', color: C.textMuted, margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.body}</p>
+                        <p style={{ fontSize: '11px', color: C.textTertiary, margin: 0 }}>{relTime(n.created_at)}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <div style={{ padding: '10px 16px', borderTop: `1px solid ${C.border}`, textAlign: 'center' }}>
+                  <a href="/notifikasi" onClick={() => setShowBell(false)} style={{ fontSize: '12px', color: C.primary, textDecoration: 'none', fontWeight: 500 }}>Lihat semua →</a>
+                </div>
               </div>
             )}
           </div>
