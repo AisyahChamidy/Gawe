@@ -69,6 +69,13 @@ export default function DasborKlienPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
+      <style>{`
+        @media (max-width: 767px) {
+          .kl-stat-grid   { grid-template-columns: 1fr !important; }
+          .kl-action-grid { grid-template-columns: 1fr !important; }
+          .kl-hero-btn    { align-self: flex-start; }
+        }
+      `}</style>
       <NavbarKlien />
 
       {/* ── Dark hero strip ──────────────────────────────────────────────── */}
@@ -84,7 +91,7 @@ export default function DasborKlienPage() {
               Kelola proyek dan freelancer-mu di sini.
             </p>
           </div>
-          <a href="/klien/post-proyek" style={{
+          <a href="/klien/post-proyek" className="kl-hero-btn" style={{
             padding: '9px 18px',
             backgroundColor: 'rgba(255,255,255,0.1)',
             border: '1px solid rgba(255,255,255,0.2)',
@@ -101,7 +108,7 @@ export default function DasborKlienPage() {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px clamp(16px, 4vw, 32px) 60px' }}>
 
         {/* ── Stat cards ────────────────────────────────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+        <div className="kl-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', marginBottom: '32px' }}>
           {statCards.map(s => (
             <div key={s.label} style={{
               backgroundColor: C.bgWhite,
@@ -166,7 +173,7 @@ export default function DasborKlienPage() {
           <div style={{ fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: C.textMuted, fontWeight: 600, marginBottom: '16px' }}>
             Aksi Cepat
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
+          <div className="kl-action-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
             {[
               { href: '/klien/post-proyek', Icon: FilePlus,      title: 'Post Proyek Baru',  desc: 'Cari freelancer untuk proyekmu',  bg: C.primary,         color: 'white',      border: 'none' },
               { href: '/klien/proyek',      Icon: ClipboardList, title: 'Kelola Proyek',     desc: 'Lihat lamaran & update status',   bg: C.bgLavenderSoft,  color: C.textDark,   border: `1px solid ${C.primaryBorder}` },

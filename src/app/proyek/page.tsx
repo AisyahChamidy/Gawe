@@ -53,6 +53,11 @@ export default function ProyekPublikPage() {
         .pill-scroll-pub { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
         .pill-scroll-pub::-webkit-scrollbar { display: none; }
         input::placeholder { color: #AFA9EC; }
+        @media (max-width: 767px) {
+          .pub-nav-hide    { display: none !important; }
+          .proj-card-top   { flex-wrap: wrap !important; }
+          .proj-card-right { margin-left: 0 !important; }
+        }
       `}</style>
 
       {loadingAuth ? null : userRole === 'client' ? (
@@ -60,15 +65,15 @@ export default function ProyekPublikPage() {
       ) : userRole ? (
         <Navbar />
       ) : (
-        <div style={{ backgroundColor: C.bgWhite, borderBottom: `1px solid ${C.border}`, padding: '0 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ backgroundColor: C.bgWhite, borderBottom: `1px solid ${C.border}`, padding: '0 clamp(16px, 4vw, 32px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 64, position: 'sticky', top: 0, zIndex: 100 }}>
           <a href="/" style={{ textDecoration: 'none' }}>
             <span style={{ fontSize: '22px', fontWeight: 800, color: C.textDark, fontFamily: theme.fonts.headline }}>Gawe</span>
           </a>
-          <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
-            <a href="/#cara-kerja" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>Cara Kerja</a>
-            <a href="/proyek" style={{ color: C.primary, textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>Proyek</a>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <a href="/#cara-kerja" className="pub-nav-hide" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>Cara Kerja</a>
+            <a href="/proyek" className="pub-nav-hide" style={{ color: C.primary, textDecoration: 'none', fontSize: '14px', fontWeight: 600 }}>Proyek</a>
             <a href="/auth/masuk" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '14px', fontWeight: 500 }}>Masuk</a>
-            <div style={{ width: 1, height: 20, backgroundColor: C.border }} />
+            <div className="pub-nav-hide" style={{ width: 1, height: 20, backgroundColor: C.border }} />
             <a href="/auth/daftar" style={{ backgroundColor: C.primary, color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: 600, padding: '8px 18px', borderRadius: R.sm }}>
               Daftar Gratis
             </a>
@@ -76,7 +81,7 @@ export default function ProyekPublikPage() {
         </div>
       )}
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 32px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: 'clamp(24px, 5vw, 40px) clamp(16px, 4vw, 32px)' }}>
         <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '8px', color: C.textDark, fontFamily: theme.fonts.headline }}>Proyek Tersedia</h1>
         <p style={{ color: C.textMuted, marginBottom: '28px' }}>
           {loading ? 'Memuat...' : `${filtered.length} proyek menunggu freelancer seperti kamu`}
@@ -145,15 +150,15 @@ export default function ProyekPublikPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {filtered.map(project => (
               <div key={project.id} style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '24px', boxShadow: theme.shadow.card }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                  <div>
+                <div className="proj-card-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', gap: '12px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ backgroundColor: C.primaryTint, color: C.primary, fontSize: '12px', padding: '4px 10px', borderRadius: '20px', display: 'inline-block' }}>{project.category}</span>
                     <a href={`/proyek/${project.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                       <h2 style={{ fontSize: '18px', margin: '8px 0 0', fontWeight: 700, cursor: 'pointer', color: C.textDark }}>{project.title}</h2>
                     </a>
                   </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
-                    <div style={{ color: C.primary, fontWeight: 700, fontSize: '16px', fontFamily: theme.fonts.mono }}>{fmt(project.budget_min)} – {fmt(project.budget_max)}</div>
+                  <div className="proj-card-right" style={{ textAlign: 'right', flexShrink: 0, marginLeft: '16px' }}>
+                    <div style={{ color: C.primary, fontWeight: 700, fontSize: '14px', fontFamily: theme.fonts.mono, whiteSpace: 'nowrap' }}>{fmt(project.budget_min)} – {fmt(project.budget_max)}</div>
                     <div style={{ color: C.textMuted, fontSize: '12px', marginTop: '4px' }}>{project.estimated_days} hari</div>
                   </div>
                 </div>

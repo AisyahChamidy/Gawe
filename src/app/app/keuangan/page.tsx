@@ -130,26 +130,35 @@ export default function KeuanganPage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
+      <style>{`
+        @media (max-width: 767px) {
+          .keu-stat-grid  { grid-template-columns: 1fr 1fr !important; }
+          .keu-chart-grid { grid-template-columns: 1fr !important; }
+          .keu-form-grid  { grid-template-columns: 1fr !important; }
+          .keu-header     { flex-wrap: wrap; gap: 12px; }
+        }
+      `}</style>
       <Navbar />
-      <div style={{ padding: '40px 32px', maxWidth: '1000px', margin: '0 auto' }}>
+      <div style={{ padding: 'clamp(20px, 5vw, 40px) clamp(16px, 4vw, 32px)', maxWidth: '1000px', margin: '0 auto' }}>
 
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+        <div className="keu-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
           <div>
-            <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '4px', color: C.textDark, fontFamily: theme.fonts.headline }}>Keuangan</h1>
+            <h1 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 800, marginBottom: '4px', color: C.textDark, fontFamily: theme.fonts.headline }}>Keuangan</h1>
             <p style={{ color: C.textMuted, fontSize: '14px', margin: 0 }}>Pantau pemasukan dan arus kasmu</p>
           </div>
           <button onClick={() => setShowForm(!showForm)} style={{
             padding: '10px 20px', backgroundColor: C.primary, color: 'white',
-            border: 'none', borderRadius: R.sm, fontSize: '14px', fontWeight: 600, cursor: 'pointer'
+            border: 'none', borderRadius: R.sm, fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+            whiteSpace: 'nowrap',
           }}>+ Catat Pemasukan</button>
         </div>
 
         {/* Form tambah transaksi */}
         {showForm && (
-          <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.primary}`, borderRadius: R.md, padding: '24px', marginBottom: '24px', boxShadow: theme.shadow.card }}>
+          <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.primary}`, borderRadius: R.md, padding: 'clamp(16px, 4vw, 24px)', marginBottom: '24px', boxShadow: theme.shadow.card }}>
             <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px', color: C.textDark }}>Catat Transaksi Baru</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+            <div className="keu-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
               <div>
                 <label style={{ fontSize: '12px', color: C.textMuted, display: 'block', marginBottom: '6px' }}>Deskripsi</label>
                 <input style={inp} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="cth: Desain logo klien A" />
@@ -184,7 +193,7 @@ export default function KeuanganPage() {
         )}
 
         {/* Stat cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+        <div className="keu-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
           {statCards.map(s => (
             <div key={s.label} style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px', boxShadow: theme.shadow.card }}>
               <div style={{ width: 36, height: 36, borderRadius: '10px', backgroundColor: s.iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
@@ -196,7 +205,7 @@ export default function KeuanganPage() {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '24px' }}>
+        <div className="keu-chart-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '24px' }}>
           {/* Chart */}
           <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '24px', boxShadow: theme.shadow.card }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>

@@ -80,17 +80,17 @@ export default function KlienProyekDetailPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark, display: 'flex', flexDirection: 'column' }}>
       <NavbarKlien />
-      <div style={{ flex: 1, maxWidth: '900px', width: '100%', margin: '0 auto', padding: '32px 32px 0', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ flex: 1, maxWidth: '900px', width: '100%', margin: '0 auto', padding: 'clamp(16px, 4vw, 32px) clamp(16px, 4vw, 32px) 0', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
         {project && (
           <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px 24px', boxShadow: theme.shadow.card }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ backgroundColor: C.primaryTint, color: C.primary, fontSize: '11px', padding: '2px 8px', borderRadius: '20px', marginBottom: '8px', display: 'inline-block' }}>{project.category}</span>
-                <h1 style={{ fontSize: '20px', fontWeight: 700, margin: '6px 0 4px', color: C.textDark, fontFamily: theme.fonts.headline }}>{project.title}</h1>
+                <h1 style={{ fontSize: 'clamp(16px, 3vw, 20px)', fontWeight: 700, margin: '6px 0 4px', color: C.textDark, fontFamily: theme.fonts.headline }}>{project.title}</h1>
                 <span style={{ color: C.primary, fontSize: '14px', fontFamily: theme.fonts.mono }}>{fmt(project.budget_min)} – {fmt(project.budget_max)}</span>
               </div>
-              <a href="/klien/proyek" style={{ color: C.textMuted, fontSize: '13px', textDecoration: 'none' }}>← Kembali</a>
+              <a href="/klien/proyek" style={{ color: C.textMuted, fontSize: '13px', textDecoration: 'none', flexShrink: 0, paddingTop: '4px' }}>← Kembali</a>
             </div>
           </div>
         )}

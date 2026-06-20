@@ -79,12 +79,13 @@ function TrustRing({ score, size = 80, animate = false }: { score: number; size?
 }
 
 // ── TiltCard ─────────────────────────────────────────────────────────────
-function TiltCard({ children, style }: { children: ReactNode, style?: CSSProperties }) {
+function TiltCard({ children, style, className }: { children: ReactNode, style?: CSSProperties, className?: string }) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
   const [hovered, setHovered] = useState(false)
 
   return (
     <div
+      className={className}
       style={{
         ...style,
         transform: `perspective(1000px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg) ${hovered ? 'scale(1.02)' : 'scale(1)'}`,
@@ -108,12 +109,13 @@ function TiltCard({ children, style }: { children: ReactNode, style?: CSSPropert
 }
 
 // ── FloatingCard ─────────────────────────────────────────────────────────
-function FloatingCard({ children, position }: {
+function FloatingCard({ children, position, className }: {
   children: ReactNode
+  className?: string
   position: { left?: number; right?: number; top?: number; bottom?: number }
 }) {
   return (
-    <div style={{
+    <div className={className} style={{
       position: 'absolute', ...position,
       background: 'rgba(255,255,255,0.92)', borderRadius: R.md,
       padding: '14px 18px', backdropFilter: 'blur(8px)',
@@ -150,9 +152,9 @@ function HeroSection() {
           Posting proyek
         </a>
       </div>
-      <div style={{ position: 'relative', height: 280, marginTop: 48, overflow: 'hidden', background: C.meshBase, borderRadius: R.lg, maxWidth: 1000, marginLeft: 'auto', marginRight: 'auto' }}>
+      <div className="hero-widget" style={{ position: 'relative', height: 280, marginTop: 48, overflow: 'hidden', background: C.meshBase, borderRadius: R.lg, maxWidth: 1000, marginLeft: 'auto', marginRight: 'auto' }}>
         <div style={{ position: 'absolute', top: '-20%', right: '-20%', bottom: '-20%', left: '-20%', background: mesh, filter: 'blur(40px)' }} />
-        <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center', pointerEvents: 'none' }}>
+        <div className="hero-widget-center" style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)', textAlign: 'center', pointerEvents: 'none' }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: 8 }}>Trust Score</div>
           <div style={{ width: 80, height: 80, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px' }}>
             <span style={{ fontSize: 28, fontWeight: 700, color: 'rgba(255,255,255,0.9)', fontFamily: 'var(--font-playfair),Georgia,serif' }}>82</span>
@@ -161,21 +163,21 @@ function HeroSection() {
             <div style={{ width: '82%', height: '100%', background: 'rgba(255,255,255,0.6)', borderRadius: 4 }} />
           </div>
         </div>
-        <FloatingCard position={{ left: 24, top: 24 }}>
+        <FloatingCard className="hero-float-card" position={{ left: 24, top: 24 }}>
           <p style={{ fontSize: 11, color: C.textTertiary, margin: '0 0 4px' }}>Trust Score</p>
           <p style={{ fontSize: 26, fontWeight: 700, color: C.text, margin: 0 }}>82<span style={{ fontSize: 14, color: C.textTertiary }}>/100</span></p>
         </FloatingCard>
-        <FloatingCard position={{ right: 24, top: 24 }}>
+        <FloatingCard className="hero-float-card" position={{ right: 24, top: 24 }}>
           <p style={{ fontSize: 12, color: C.text, margin: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
             <CheckCircle size={14} strokeWidth={1.5} color={C.success} />Skill test: 92/100
           </p>
         </FloatingCard>
-        <FloatingCard position={{ left: 24, bottom: 24 }}>
+        <FloatingCard className="hero-float-card" position={{ left: 24, bottom: 24 }}>
           <p style={{ fontSize: 12, color: C.text, margin: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
             <Rocket size={14} strokeWidth={1.5} color={C.primary} />3 proyek cocok untukmu
           </p>
         </FloatingCard>
-        <FloatingCard position={{ right: 24, bottom: 24 }}>
+        <FloatingCard className="hero-float-card" position={{ right: 24, bottom: 24 }}>
           <p style={{ fontSize: 12, color: C.text, margin: 0, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
             <ShieldCheck size={14} strokeWidth={1.5} color={C.primary} />Escrow aman
           </p>
@@ -251,6 +253,12 @@ export default function LandingPage() {
         @media(max-width:768px){
           .nav-mid{display:none!important}
           .pain-grid,.pilar-grid,.momentum-grid,.komisi-grid,.dual-grid,.testi-grid,.footer-cols{grid-template-columns:1fr!important}
+          .pilar-2-card{order:2}
+        }
+        @media(max-width:599px){
+          .hero-widget{height:auto!important;padding:20px 16px 24px!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:8px!important}
+          .hero-widget-center{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:100%!important;margin-bottom:4px!important}
+          .hero-float-card{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:100%!important;box-sizing:border-box!important}
         }
       `}</style>
 
@@ -365,7 +373,7 @@ export default function LandingPage() {
           style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', marginBottom: 96 }}
         >
           <div className="pilar-grid" style={{ display: 'grid', gridTemplateColumns: '5fr 6fr', gap: 64, alignItems: 'center' }}>
-            <TiltCard style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 24, boxShadow: SH }}>
+            <TiltCard className="pilar-2-card" style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 24, boxShadow: SH }}>
               <p style={{ fontSize: 13, fontWeight: 500, color: C.text, marginBottom: 16 }}>Proyek mikro tersedia</p>
               {[['Desain logo UMKM', 'Rp 350rb'], ['Konten Instagram 1 bulan', 'Rp 800rb'], ['Landing page sederhana', 'Rp 1,2jt']].map(([n, p], i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: i < 2 ? `0.5px solid ${C.border}` : 'none', fontSize: 14 }}>

@@ -296,13 +296,13 @@ export default function JelajahPage() {
                   }}
                 >
                   {/* Top row: category + match badge + budget */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                    <span style={{ background: C.primaryTint, color: C.primary, borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                    <span style={{ background: C.primaryTint, color: C.primary, borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 500, whiteSpace: 'nowrap' }}>
                       {project.category}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <MatchBadge score={matchScore} />
-                      <span style={{ fontSize: '15px', fontWeight: 700, color: C.primary, fontFamily: theme.fonts.mono }}>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: C.primary, fontFamily: theme.fonts.mono, whiteSpace: 'nowrap' }}>
                         {fmt(project.budget_min)} – {fmt(project.budget_max)}
                       </span>
                     </div>
@@ -380,7 +380,7 @@ export default function JelajahPage() {
         <div
           onClick={e => { if (e.target === e.currentTarget) closeModal() }}
           style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div style={{ background: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.lg, padding: '32px', maxWidth: '520px', width: '100%', boxShadow: theme.shadow.hover }}>
+          <div style={{ background: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.lg, padding: 'clamp(20px, 5vw, 32px)', maxWidth: '520px', width: '100%', boxShadow: theme.shadow.hover }}>
             <h2 style={{ fontSize: '20px', fontWeight: 700, color: C.textDark, marginBottom: '4px' }}>Kirim Lamaran</h2>
             <p style={{ fontSize: '14px', color: C.textMuted, marginBottom: '24px' }}>{selectedProject.title}</p>
 

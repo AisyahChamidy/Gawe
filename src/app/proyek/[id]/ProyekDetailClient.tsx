@@ -50,11 +50,11 @@ function PublicNavbar() {
       <a href="/" style={{ textDecoration: 'none' }}>
         <span style={{ fontSize: '20px', fontWeight: '800', color: C.primary, fontFamily: theme.fonts.headline }}>Gawe</span>
       </a>
-      <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-        <a href="/#cara-kerja" style={navLinkStyle}>Cara Kerja</a>
-        <a href="/proyek" style={{ ...navLinkStyle, color: C.primary, fontWeight: '600' }}>Proyek</a>
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <a href="/#cara-kerja" className="pub-nav-hide" style={navLinkStyle}>Cara Kerja</a>
+        <a href="/proyek" className="pub-nav-hide" style={{ ...navLinkStyle, color: C.primary, fontWeight: '600' }}>Proyek</a>
         <a href="/auth/masuk" style={navLinkStyle}>Masuk</a>
-        <div style={{ width: 1, height: 20, backgroundColor: C.border }} />
+        <div className="pub-nav-hide" style={{ width: 1, height: 20, backgroundColor: C.border }} />
         <a href="/auth/daftar" style={{ backgroundColor: C.primary, color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: R.sm }}>
           Daftar Gratis
         </a>
@@ -122,6 +122,13 @@ export default function ProyekDetailClient({
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
+      <style>{`
+        @media (max-width: 767px) {
+          .detail-grid    { grid-template-columns: 1fr !important; }
+          .detail-sidebar { position: static !important; top: auto !important; order: -1; }
+          .pub-nav-hide   { display: none !important; }
+        }
+      `}</style>
 
       {/* Navbar */}
       {loadingAuth
@@ -149,7 +156,7 @@ export default function ProyekDetailClient({
       )}
 
       {/* Main layout */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px clamp(16px, 4vw, 32px) 60px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: '32px', alignItems: 'start' }}>
+      <div className="detail-grid" style={{ maxWidth: 1100, margin: '0 auto', padding: '24px clamp(16px, 4vw, 32px) 60px', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: '32px', alignItems: 'start' }}>
 
         {/* Left */}
         <div>
@@ -211,7 +218,7 @@ export default function ProyekDetailClient({
         </div>
 
         {/* Right — sidebar */}
-        <div style={{ position: 'sticky', top: '84px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="detail-sidebar" style={{ position: 'sticky', top: '84px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
           {/* Card: budget + lamar */}
           <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.lg, padding: '24px', boxShadow: theme.shadow.card }}>

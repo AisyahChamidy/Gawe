@@ -82,6 +82,14 @@ export default function FreelancerProfilePage() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: C.bgWhite, fontFamily: theme.fonts.body, color: C.textDark }}>
+      <style>{`
+        @media (max-width: 767px) {
+          .fl-main-grid { grid-template-columns: 1fr !important; }
+          .fl-sidebar   { order: -1; display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+          .fl-cta-card  { grid-column: 1 / -1; }
+          .pub-nav-hide { display: none !important; }
+        }
+      `}</style>
       {loadingAuth ? null : userRole === 'client' ? (
         <NavbarKlien />
       ) : userRole ? (
@@ -91,11 +99,11 @@ export default function FreelancerProfilePage() {
           <a href="/" style={{ textDecoration: 'none' }}>
             <span style={{ fontSize: '20px', fontWeight: '800', color: C.primary, fontFamily: theme.fonts.headline }}>Gawe</span>
           </a>
-          <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-            <a href="/#cara-kerja" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>Cara Kerja</a>
-            <a href="/proyek" style={{ color: C.primary, textDecoration: 'none', fontSize: '14px', fontWeight: '600' }}>Proyek</a>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <a href="/#cara-kerja" className="pub-nav-hide" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>Cara Kerja</a>
+            <a href="/proyek" className="pub-nav-hide" style={{ color: C.primary, textDecoration: 'none', fontSize: '14px', fontWeight: '600' }}>Proyek</a>
             <a href="/auth/masuk" style={{ color: C.textMuted, textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>Masuk</a>
-            <div style={{ width: 1, height: 20, backgroundColor: C.border }} />
+            <div className="pub-nav-hide" style={{ width: 1, height: 20, backgroundColor: C.border }} />
             <a href="/auth/daftar" style={{ backgroundColor: C.primary, color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: '600', padding: '8px 18px', borderRadius: R.sm }}>
               Daftar Gratis
             </a>
@@ -164,7 +172,7 @@ export default function FreelancerProfilePage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 240px', gap: '24px', alignItems: 'start' }}>
+        <div className="fl-main-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 240px', gap: '24px', alignItems: 'start' }}>
 
           {/* Left */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -220,7 +228,7 @@ export default function FreelancerProfilePage() {
           </div>
 
           {/* Right — stats */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div className="fl-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {[
               { Icon: CheckCircle, label: 'Proyek Selesai', value: acceptedCount,                          color: C.success },
               { Icon: Star,        label: 'Trust Score',   value: `${profile.trust_score || 10}/100`,      color: C.primary },
@@ -234,7 +242,7 @@ export default function FreelancerProfilePage() {
               </div>
             ))}
 
-            <div style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px', textAlign: 'center', boxShadow: theme.shadow.card }}>
+            <div className="fl-cta-card" style={{ backgroundColor: C.bgWhite, border: `1px solid ${C.border}`, borderRadius: R.md, padding: '20px', textAlign: 'center', boxShadow: theme.shadow.card }}>
               <p style={{ fontSize: '13px', color: C.textMuted, marginBottom: '12px' }}>Butuh freelancer seperti ini?</p>
               <a href="/auth/daftar" style={{ display: 'block', backgroundColor: C.primary, color: 'white', textDecoration: 'none', padding: '10px', borderRadius: R.sm, fontSize: '13px', fontWeight: '700' }}>
                 Post Proyek →
