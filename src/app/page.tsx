@@ -37,6 +37,12 @@ const mesh = `
 `
 const fadeUp = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }
 const fv = { duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }
+const hdrAnim = {
+  initial: { opacity: 0, y: 32 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.2 },
+  transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+} as const
 
 // ── AnimatedNumber ───────────────────────────────────────────────────────
 function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string }) {
@@ -130,7 +136,7 @@ function HeroSection() {
   return (
     <section style={{ background: C.bg, padding: '64px 24px 80px', textAlign: 'center' }}>
       <div style={{ display: 'inline-block', background: C.primaryTint, color: C.text, fontSize: 12, fontWeight: 500, padding: '5px 14px', borderRadius: R.pill, marginBottom: 20 }}>
-        Skor 0 hari ini, proyek pertama minggu ini
+        500+ freelancer bergabung minggu ini
       </div>
       <h1 style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontWeight: 700, fontSize: 46, lineHeight: 1.15, color: C.text, margin: '0 0 16px', letterSpacing: '-0.5px' }}>
         Skill ada.<br />Klien belum ada.<br /><span style={{ color: C.primary }}>Gawe</span> bantu itu.
@@ -309,14 +315,13 @@ export default function LandingPage() {
       </div>
 
       {/* 5 — FEATURE SCROLL-SYNC */}
-      <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
-        style={{ background: C.bg, padding: '160px 0' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', marginBottom: 80 }}>
+      <section style={{ background: C.bg, padding: '160px 0' }}>
+        <motion.div {...hdrAnim} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', marginBottom: 48 }}>
           <p style={{ fontSize: 12, fontWeight: 600, color: C.primary, letterSpacing: '1.5px', marginBottom: 12, textTransform: 'uppercase' }}>Tiga Pilar Gawe</p>
           <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 36, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', maxWidth: 600 }}>
             Bukan cuma marketplace, tapi sistem yang berpihak ke pemula
           </h2>
-        </div>
+        </motion.div>
 
         {/* Pilar 1 */}
         <motion.div
@@ -434,17 +439,18 @@ export default function LandingPage() {
             </TiltCard>
           </div>
         </motion.div>
-      </motion.section>
+      </section>
 
       {/* 7 — HOW IT WORKS */}
-      <motion.section id="cara-kerja" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
-        style={{ background: C.bgAlt, padding: '160px 0' }}>
+      <section id="cara-kerja" style={{ background: C.bgAlt, padding: '160px 0' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
-          <p style={{ fontSize: 12, fontWeight: 600, color: C.primary, letterSpacing: '1.5px', marginBottom: 12, textTransform: 'uppercase' }}>Cara Kerja</p>
-          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 36, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 12 }}>
-            Dari daftar ke bayaran pertama — dalam hitungan hari.
-          </h2>
-          <p style={{ fontSize: 15, color: C.textMuted, marginBottom: 32 }}>Langkah yang jelas. Tanpa ribet, tanpa drama.</p>
+          <motion.div {...hdrAnim}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: C.primary, letterSpacing: '1.5px', marginBottom: 12, textTransform: 'uppercase' }}>Cara Kerja</p>
+            <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 36, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 12 }}>
+              Dari daftar ke bayaran pertama — dalam hitungan hari.
+            </h2>
+            <p style={{ fontSize: 15, color: C.textMuted, marginBottom: 32 }}>Langkah yang jelas. Tanpa ribet, tanpa drama.</p>
+          </motion.div>
           <div style={{ display: 'inline-flex', background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.pill, padding: 4, gap: 4, marginBottom: 48 }}>
             {(['freelancer', 'klien'] as const).map(tab => (
               <button key={tab} onClick={() => setHowTab(tab)} style={{
@@ -479,21 +485,22 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* 8 — KOMISI */}
-      <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
-        style={{ background: '#EFEDFB' }}>
+      <section style={{ background: '#EFEDFB' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '160px 32px' }}>
           <div className="komisi-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 48, alignItems: 'start' }}>
             <div>
-              <span style={{ background: C.primaryTint, color: C.primary, fontSize: 11, fontWeight: 600, letterSpacing: '1px', padding: '5px 12px', borderRadius: R.sm, display: 'inline-block', marginBottom: 24, textTransform: 'uppercase' }}>Biaya Platform</span>
-              <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 32, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 16 }}>
-                Gratis untuk daftar. Bayar hanya kalau kamu sudah dapat bayaran.
-              </h2>
-              <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, marginBottom: 24 }}>
-                Komisi 10% dipotong otomatis dari pembayaran saat proyek selesai. Tidak ada biaya bulanan, tidak ada biaya pendaftaran.
-              </p>
+              <motion.div {...hdrAnim}>
+                <span style={{ background: C.primaryTint, color: C.primary, fontSize: 11, fontWeight: 600, letterSpacing: '1px', padding: '5px 12px', borderRadius: R.sm, display: 'inline-block', marginBottom: 24, textTransform: 'uppercase' }}>Biaya Platform</span>
+                <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 32, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 16 }}>
+                  Gratis untuk daftar. Bayar hanya kalau kamu sudah dapat bayaran.
+                </h2>
+                <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, marginBottom: 24 }}>
+                  Komisi 10% dipotong otomatis dari pembayaran saat proyek selesai. Tidak ada biaya bulanan, tidak ada biaya pendaftaran.
+                </p>
+              </motion.div>
               <p style={{ fontSize: 11, fontWeight: 600, color: C.textMuted, letterSpacing: '1px', marginBottom: 12, textTransform: 'uppercase' }}>Apa yang gratis selamanya:</p>
               {['Buat profil dan skill test', 'Apply ke proyek & kirim proposal', 'Akses dashboard cashflow dasar', 'Generate invoice otomatis', 'Chat aman dengan klien', 'Review otomatis sistem'].map((s, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, fontSize: 14, color: C.textMuted }}>
@@ -577,14 +584,13 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* 9 — TESTIMONI */}
-      <motion.section initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
-        style={{ background: C.bg }}>
+      <section style={{ background: C.bg }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '160px 32px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 32, fontWeight: 700, color: C.text, letterSpacing: '-0.5px' }}>Mereka juga pernah di posisimu.</h2>
+            <motion.h2 {...hdrAnim} className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 32, fontWeight: 700, color: C.text, letterSpacing: '-0.5px' }}>Mereka juga pernah di posisimu.</motion.h2>
             <div style={{ display: 'flex', gap: 12 }}>
               <button
                 onClick={() => testimoniScrollRef.current?.scrollBy({ left: -400, behavior: 'smooth' })}
@@ -622,7 +628,7 @@ export default function LandingPage() {
                 key={i}
                 style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 28, boxShadow: SH, scrollSnapAlign: 'start', minWidth: 340, maxWidth: 'calc(100vw - 64px)', flexShrink: 0 }}
               >
-                <p style={{ fontSize: 15, fontStyle: 'italic', color: C.text, lineHeight: 1.7, marginBottom: 20 }}>"{t.q}"</p>
+                <p style={{ fontSize: 15, fontStyle: 'italic', color: C.text, lineHeight: 1.7, marginBottom: 20, overflowWrap: 'break-word', wordBreak: 'break-word' }}>"{t.q}"</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: t.iBg, color: t.iC, border: `0.5px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
                     {t.init}
@@ -640,15 +646,14 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* 10 — DUAL CTA */}
-      <motion.section id="dual-cta" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={fv}
-        style={{ background: C.bgAlt }}>
+      <section id="dual-cta" style={{ background: C.bgAlt }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '160px 32px' }}>
-          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 36, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', textAlign: 'center', marginBottom: 48 }}>
+          <motion.h2 {...hdrAnim} className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 36, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', textAlign: 'center', marginBottom: 48 }}>
             Kamu tidak butuh pengalaman dulu.<br />Kamu butuh kesempatan pertama.
-          </h2>
+          </motion.h2>
           <div className="dual-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
             <TiltCard style={{ background: C.bg, border: `0.5px solid ${C.border}`, borderRadius: R.lg, padding: 32, borderTop: `3px solid ${C.primary}`, boxShadow: SH }}>
               <span style={{ background: C.primaryTint, color: C.primary, fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: R.sm, display: 'inline-block', marginBottom: 16, textTransform: 'uppercase' }}>Untuk Freelancer</span>
@@ -684,7 +689,7 @@ export default function LandingPage() {
             </TiltCard>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* 11 — FINAL CTA */}
       <section style={{ position: 'relative', overflow: 'hidden', background: C.meshBase, padding: '160px 32px', textAlign: 'center' }}>
