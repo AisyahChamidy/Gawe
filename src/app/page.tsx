@@ -437,7 +437,7 @@ export default function LandingPage() {
       <section style={{ background: C.bg, padding: '120px 0 120px' }}>
         <motion.div {...hdrAnim} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', marginBottom: 48 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: C.primary, letterSpacing: '2px', marginBottom: 12, textTransform: 'uppercase' }}>Tiga Pilar Gawe</p>
-          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 48, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', maxWidth: 600 }}>
+          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 'clamp(36px, 3.8vw, 48px)', fontWeight: 700, color: C.text, letterSpacing: '-0.5px', maxWidth: 600 }}>
             Bukan cuma marketplace, tapi sistem yang berpihak ke pemula
           </h2>
         </motion.div>
@@ -562,7 +562,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px' }}>
           <motion.div {...hdrAnim}>
             <p style={{ fontSize: 13, fontWeight: 600, color: C.primary, letterSpacing: '2px', marginBottom: 12, textTransform: 'uppercase' }}>Cara Kerja</p>
-            <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 48, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 12 }}>
+            <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 'clamp(36px, 3.8vw, 48px)', fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 12 }}>
               Dari daftar ke bayaran pertama — dalam hitungan hari.
             </h2>
             <p style={{ fontSize: 15, color: C.textMuted, marginBottom: 32 }}>Langkah yang jelas. Tanpa ribet, tanpa drama.</p>
@@ -625,7 +625,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '160px 32px' }}>
           <motion.div {...hdrAnim} style={{ marginBottom: 48 }}>
             <span style={{ background: C.primaryTint, color: C.primary, fontSize: 13, fontWeight: 600, letterSpacing: '2px', padding: '5px 12px', borderRadius: R.sm, display: 'inline-block', marginBottom: 24, textTransform: 'uppercase' }}>Biaya Platform</span>
-            <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 48, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 16 }}>
+            <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 'clamp(36px, 3.8vw, 48px)', fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 16 }}>
               Gratis untuk daftar. Bayar hanya kalau kamu sudah dapat bayaran.
             </h2>
             <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7 }}>
@@ -741,7 +741,7 @@ export default function LandingPage() {
       {/* 9 — TESTIMONI */}
       <section style={{ background: C.bg }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '120px 32px 80px' }}>
-          <motion.h2 {...hdrAnim} className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 48, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 12 }}>Mereka juga pernah di posisimu.</motion.h2>
+          <motion.h2 {...hdrAnim} className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 'clamp(36px, 3.8vw, 48px)', fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 12 }}>Mereka juga pernah di posisimu.</motion.h2>
           <p style={{ fontSize: 13, fontWeight: 500, color: C.textMuted, letterSpacing: '0.5px', marginBottom: 48 }}>
             Bukan bintang lima generik — ini orang beneran, dengan masalah yang beneran.
           </p>
@@ -783,7 +783,7 @@ export default function LandingPage() {
       {/* 10 — DUAL CTA */}
       <section id="dual-cta" style={{ background: C.bgAlt }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '160px 32px' }}>
-          <motion.h2 {...hdrAnim} className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 48, fontWeight: 700, color: C.text, letterSpacing: '-0.5px', textAlign: 'center', marginBottom: 48 }}>
+          <motion.h2 {...hdrAnim} className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 'clamp(36px, 3.8vw, 48px)', fontWeight: 700, color: C.text, letterSpacing: '-0.5px', textAlign: 'center', marginBottom: 48 }}>
             Kamu tidak butuh pengalaman dulu.<br />Kamu butuh kesempatan pertama.
           </motion.h2>
           <div className="dual-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
@@ -831,7 +831,7 @@ export default function LandingPage() {
         <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'linear-gradient(180deg,rgba(15,12,46,0) 0%,rgba(15,12,46,0.3) 100%)' }} />
         <motion.div style={{ position: 'relative', zIndex: 1, maxWidth: 640, margin: '0 auto', y: ctaY, opacity: ctaOpacity }}>
           <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 48, fontWeight: 700, color: C.bg, letterSpacing: '-0.5px', marginBottom: 0 }}>Gratis untuk daftar.</h2>
-          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 32, fontWeight: 500, color: C.primaryBorder, letterSpacing: '-0.5px', marginBottom: 20 }}>Bayar hanya kalau kamu sudah dapat bayaran.</h2>
+          <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 26, fontWeight: 500, color: C.primaryBorder, letterSpacing: '-0.5px', marginBottom: 20 }}>Bayar hanya kalau kamu sudah dapat bayaran.</h2>
           <p style={{ fontSize: 16, color: C.textTertiary, marginBottom: 40, lineHeight: 1.7 }}>
             Daftar sekarang. Tanpa kartu kredit. Kamu bisa mulai buat profil dalam 10 menit dan langsung terlihat oleh ratusan klien hari ini.
           </p>
