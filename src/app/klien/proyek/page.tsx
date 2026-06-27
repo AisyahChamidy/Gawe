@@ -103,8 +103,16 @@ export default function KlienProyekPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/masuk'); return }
 
-    const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (prof?.role !== 'client' && prof?.role !== 'both') { router.push('/app/dasbor'); return }
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role === 'freelancer') {
+      router.push('/app/dasbor')
+      return
+    }
 
     const { data: projectsData, error: projError } = await supabase
       .from('projects')
