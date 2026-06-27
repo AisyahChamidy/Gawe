@@ -868,9 +868,9 @@ export default function LandingPage() {
               </p>
             </div>
             {[
-              { heading: 'PRODUK', links: [['Cara Kerja', '#cara-kerja'], ['Proyek', '/proyek'], ['Harga', '#komisi'], ['Fitur', '#fitur']] },
-              { heading: 'PERUSAHAAN', links: [['Tentang', '/tentang'], ['Blog', '/blog'], ['Karir', '/karir'], ['Kontak', '/kontak']] },
-              { heading: 'LEGAL', links: [['Privasi', '/privasi'], ['Syarat & Ketentuan', '/syarat'], ['Keamanan', '/keamanan']] },
+              { heading: 'PRODUK', links: [['Cara Kerja', '/cara-kerja'], ['Proyek', '/proyek'], ['Harga', '/harga']] },
+              { heading: 'PERUSAHAAN', links: [['Tentang', '/tentang'], ['Kontak', '/kontak']] },
+              { heading: 'LEGAL', links: [['Privasi', '/privasi'], ['Syarat & Ketentuan', '/syarat-ketentuan'], ['Keamanan', '/keamanan']] },
             ].map(col => (
               <div key={col.heading}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: C.bg, letterSpacing: '1.5px', marginBottom: 16 }}>{col.heading}</p>
