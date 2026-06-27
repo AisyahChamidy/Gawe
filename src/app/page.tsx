@@ -202,7 +202,7 @@ function HeroSection() {
               style={{ background: C.primary, color: C.primaryTint, padding: '13px 28px', borderRadius: R.pill, fontWeight: 500, fontSize: 14, textDecoration: 'none', transition: 'transform 0.15s ease', display: 'inline-block' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
-              Mulai Tanpa Portofolio
+              Mulai Gawe Sekarang
             </a>
             <a href="/auth/daftar"
               style={{ background: 'transparent', color: C.text, border: `0.5px solid ${C.primaryBorder}`, padding: '13px 28px', borderRadius: R.pill, fontWeight: 500, fontSize: 14, textDecoration: 'none', transition: 'transform 0.15s ease', display: 'inline-block' }}
@@ -842,7 +842,7 @@ export default function LandingPage() {
               style={{ background: C.bg, color: C.text, borderRadius: R.pill, padding: '14px 32px', fontWeight: 600, fontSize: 15, textDecoration: 'none', transition: 'transform 0.15s ease, opacity 0.15s ease', display: 'inline-block' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
-              Mulai dari Nol di Sini
+              Yuk Mulai Gawe →
             </Link>
             <a href="/proyek"
               style={{ background: 'transparent', color: C.bg, border: '0.5px solid rgba(255,255,255,0.3)', borderRadius: R.pill, padding: '14px 32px', fontSize: 15, textDecoration: 'none', transition: 'transform 0.15s ease, opacity 0.15s ease', display: 'inline-block' }}
