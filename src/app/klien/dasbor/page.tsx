@@ -64,10 +64,16 @@ export default function DasborKlienPage() {
   const fmt = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n)
 
   const statusLabel: Record<string, { label: string; color: string }> = {
-    open:        { label: 'Menerima Lamaran', color: C.primary },
-    in_progress: { label: 'Sedang Berjalan',  color: C.success },
-    completed:   { label: 'Selesai',           color: C.success },
-    cancelled:   { label: 'Dibatalkan',        color: STATUS_RED },
+    open:        { label: 'Menerima Lamaran',   color: C.primary },
+    in_review:   { label: 'Perlu Ditinjau',     color: C.coral },
+    awarded:     { label: 'Freelancer Dipilih', color: C.primary },
+    funded:      { label: 'Dana Terkunci',      color: C.success },
+    in_progress: { label: 'Sedang Berjalan',    color: C.success },
+    submitted:   { label: 'Menunggu Review',    color: C.coral },
+    revision:    { label: 'Perlu Revisi',       color: C.coral },
+    disputed:    { label: 'Dalam Sengketa',     color: STATUS_RED },
+    completed:   { label: 'Selesai',            color: C.success },
+    cancelled:   { label: 'Dibatalkan',         color: STATUS_RED },
   }
 
   const name = user?.user_metadata?.full_name || 'Klien'
