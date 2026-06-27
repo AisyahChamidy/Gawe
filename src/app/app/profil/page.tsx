@@ -24,6 +24,8 @@ export default function ProfilPage() {
   const [ktpVerified, setKtpVerified] = useState(false)
   const [skillTestsPassed, setSkillTestsPassed] = useState(0)
   const [customSkill, setCustomSkill] = useState('')
+  const [aiLoadingProfile, setAiLoadingProfile] = useState(false)
+  const [aiSuggestion, setAiSuggestion] = useState<{ headline: string; bio: string } | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -261,11 +263,81 @@ export default function ProfilPage() {
                     </div>
                   ))}
                   <div>
-                    <label style={{ fontSize: '13px', color: C.textMuted, display: 'block', marginBottom: '6px' }}>Bio</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label style={{ fontSize: '13px', color: C.textMuted, display: 'block' }}>Bio</label>
+                      <button
+                        onClick={async () => {
+                          setAiLoadingProfile(true)
+                          setAiSuggestion(null)
+                          try {
+                            const res = await fetch('/api/ai/generate', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                type: 'improve_profile',
+                                context: { currentBio: form.bio, currentHeadline: form.headline, skills: form.skills },
+                              }),
+                            })
+                            const data = await res.json()
+                            if (data.result) {
+                              const hlMatch = data.result.match(/HEADLINE:\s*(.+)/i)
+                              const bioMatch = data.result.match(/BIO:\s*([\s\S]+)/i)
+                              if (hlMatch || bioMatch) {
+                                setAiSuggestion({
+                                  headline: hlMatch?.[1]?.trim() ?? '',
+                                  bio: bioMatch?.[1]?.trim() ?? '',
+                                })
+                              }
+                            }
+                          } finally {
+                            setAiLoadingProfile(false)
+                          }
+                        }}
+                        disabled={aiLoadingProfile}
+                        style={{ fontSize: '12px', fontWeight: '600', color: aiLoadingProfile ? C.textMuted : C.primary, background: aiLoadingProfile ? C.bgLavenderSoft : C.primaryTint, border: `1px solid ${C.primaryBorder}`, borderRadius: '6px', padding: '4px 10px', cursor: aiLoadingProfile ? 'not-allowed' : 'pointer' }}
+                      >
+                        {aiLoadingProfile ? 'Sedang diproses AI...' : 'Saran dari AI'}
+                      </button>
+                    </div>
                     <textarea style={{ ...inp, minHeight: '100px', resize: 'vertical' }} value={form.bio} onChange={e => setForm(f => ({ ...f, bio: e.target.value }))} placeholder="Ceritakan pengalaman dan spesialisasimu..." />
                     <div style={{ fontSize: '11px', color: C.textTertiary, marginTop: '4px' }}>
                       {form.bio.length} karakter{form.bio.length < 50 ? ' · min. 50 karakter untuk +5 poin' : ''}
                     </div>
+                    {aiSuggestion && (
+                      <div style={{ marginTop: '12px', padding: '14px', background: C.primaryTint, border: `1px solid ${C.primaryBorder}`, borderRadius: '8px' }}>
+                        <div style={{ fontSize: '12px', fontWeight: '600', color: C.primary, marginBottom: '8px' }}>Saran AI</div>
+                        {aiSuggestion.headline && (
+                          <div style={{ marginBottom: '8px' }}>
+                            <div style={{ fontSize: '11px', color: C.textMuted, marginBottom: '3px' }}>Headline</div>
+                            <div style={{ fontSize: '13px', color: C.textDark }}>{aiSuggestion.headline}</div>
+                          </div>
+                        )}
+                        {aiSuggestion.bio && (
+                          <div style={{ marginBottom: '10px' }}>
+                            <div style={{ fontSize: '11px', color: C.textMuted, marginBottom: '3px' }}>Bio</div>
+                            <div style={{ fontSize: '13px', color: C.textDark, lineHeight: '1.5' }}>{aiSuggestion.bio}</div>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            onClick={() => {
+                              if (aiSuggestion.headline) setForm(f => ({ ...f, headline: aiSuggestion.headline }))
+                              if (aiSuggestion.bio) setForm(f => ({ ...f, bio: aiSuggestion.bio }))
+                              setAiSuggestion(null)
+                            }}
+                            style={{ fontSize: '12px', fontWeight: '600', color: 'white', background: C.primary, border: 'none', borderRadius: '6px', padding: '6px 14px', cursor: 'pointer' }}
+                          >
+                            Pakai saran ini
+                          </button>
+                          <button
+                            onClick={() => setAiSuggestion(null)}
+                            style={{ fontSize: '12px', color: C.textMuted, background: 'transparent', border: `1px solid ${C.border}`, borderRadius: '6px', padding: '6px 14px', cursor: 'pointer' }}
+                          >
+                            Abaikan
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

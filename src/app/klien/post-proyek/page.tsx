@@ -22,6 +22,7 @@ export default function PostProyekPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [aiLoadingBrief, setAiLoadingBrief] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -106,7 +107,32 @@ export default function PostProyekPage() {
             </div>
 
             <div>
-              <label style={labelStyle}>Deskripsi lengkap</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <label style={labelStyle}>Deskripsi lengkap</label>
+                <button
+                  onClick={async () => {
+                    setAiLoadingBrief(true)
+                    try {
+                      const res = await fetch('/api/ai/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          type: 'improve_brief',
+                          context: { title: form.title, category: form.category, currentDescription: form.description },
+                        }),
+                      })
+                      const data = await res.json()
+                      if (data.result) setForm(f => ({ ...f, description: data.result }))
+                    } finally {
+                      setAiLoadingBrief(false)
+                    }
+                  }}
+                  disabled={aiLoadingBrief}
+                  style={{ fontSize: '12px', fontWeight: '600', color: aiLoadingBrief ? C.textMuted : C.primary, background: aiLoadingBrief ? C.bgLavenderSoft : C.primaryTint, border: `1px solid ${C.primaryBorder}`, borderRadius: '6px', padding: '4px 10px', cursor: aiLoadingBrief ? 'not-allowed' : 'pointer' }}
+                >
+                  {aiLoadingBrief ? 'Sedang diproses AI...' : 'Bantu isi brief'}
+                </button>
+              </div>
               <textarea style={{ ...inputStyle, minHeight: '120px', resize: 'vertical' }}
                 placeholder="Jelaskan apa yang kamu butuhkan, gaya yang diinginkan, referensi, dll."
                 value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />

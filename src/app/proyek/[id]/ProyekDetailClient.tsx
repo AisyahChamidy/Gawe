@@ -81,6 +81,9 @@ export default function ProyekDetailClient({
   const [sudahDilamar, setSudahDilamar] = useState(false)
   const [applying,     setApplying]     = useState(false)
   const [applied,      setApplied]      = useState(false)
+  const [coverLetter,  setCoverLetter]  = useState('')
+  const [aiLoadingCL,  setAiLoadingCL]  = useState(false)
+  const [userSkills,   setUserSkills]   = useState('')
 
   useEffect(() => {
     async function load() {
@@ -94,12 +97,14 @@ export default function ProyekDetailClient({
       setPelamarCount(count || 0)
 
       if (u) {
-        const [{ data: roleData }, { data: app }] = await Promise.all([
+        const [{ data: roleData }, { data: app }, { data: profileData }] = await Promise.all([
           supabase.from('profiles').select('role').eq('id', u.id).single(),
           supabase.from('applications').select('id').eq('project_id', project.id).eq('freelancer_id', u.id).single(),
+          supabase.from('profiles').select('skills').eq('id', u.id).single(),
         ])
         setUserRole(roleData?.role || 'freelancer')
         setSudahDilamar(!!app)
+        if (profileData?.skills) setUserSkills((profileData.skills as string[]).join(', '))
       }
 
       setLoadingAuth(false)
@@ -111,7 +116,7 @@ export default function ProyekDetailClient({
     if (!user) { window.location.href = '/auth/masuk'; return }
     setApplying(true)
     const { error } = await supabase.from('applications').insert({
-      project_id: project.id, freelancer_id: user.id, cover_letter: '', status: 'pending',
+      project_id: project.id, freelancer_id: user.id, cover_letter: coverLetter, status: 'pending',
     })
     if (!error) { setSudahDilamar(true); setApplied(true) }
     setApplying(false)
@@ -238,10 +243,52 @@ export default function ProyekDetailClient({
                 Proyek tidak lagi menerima lamaran
               </div>
             ) : user ? (
-              <button onClick={handleLamar} disabled={applying}
-                style={{ width: '100%', padding: '14px', backgroundColor: applying ? C.bgLavenderStrong : C.primary, color: applying ? C.textMuted : 'white', border: 'none', borderRadius: R.sm, fontWeight: '700', fontSize: '15px', cursor: applying ? 'not-allowed' : 'pointer' }}>
-                {applying ? 'Mengirim...' : 'Lamar Proyek'}
-              </button>
+              <div>
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '13px', color: C.textMuted, fontWeight: '500' }}>Cover letter (opsional)</label>
+                    <button
+                      onClick={async () => {
+                        setAiLoadingCL(true)
+                        try {
+                          const res = await fetch('/api/ai/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              type: 'cover_letter',
+                              context: {
+                                projectTitle: project.title,
+                                projectDescription: project.description,
+                                projectSkills: (project.skills_required || []).join(', '),
+                                freelancerSkills: userSkills,
+                              },
+                            }),
+                          })
+                          const data = await res.json()
+                          if (data.result) setCoverLetter(data.result)
+                        } finally {
+                          setAiLoadingCL(false)
+                        }
+                      }}
+                      disabled={aiLoadingCL}
+                      style={{ fontSize: '12px', fontWeight: '600', color: aiLoadingCL ? C.textMuted : C.primary, background: aiLoadingCL ? C.bgLavenderSoft : C.primaryTint, border: `1px solid ${C.primaryBorder}`, borderRadius: R.sm, padding: '4px 10px', cursor: aiLoadingCL ? 'not-allowed' : 'pointer' }}
+                    >
+                      {aiLoadingCL ? 'Sedang diproses AI...' : 'Bantu tulis lamaran'}
+                    </button>
+                  </div>
+                  <textarea
+                    value={coverLetter}
+                    onChange={e => setCoverLetter(e.target.value)}
+                    placeholder="Ceritakan kenapa kamu cocok untuk proyek ini..."
+                    rows={5}
+                    style={{ width: '100%', padding: '10px 12px', backgroundColor: C.bgLavenderSoft, border: `1px solid ${C.border}`, borderRadius: R.sm, fontSize: '13px', color: C.textDark, resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <button onClick={handleLamar} disabled={applying}
+                  style={{ width: '100%', padding: '14px', backgroundColor: applying ? C.bgLavenderStrong : C.primary, color: applying ? C.textMuted : 'white', border: 'none', borderRadius: R.sm, fontWeight: '700', fontSize: '15px', cursor: applying ? 'not-allowed' : 'pointer' }}>
+                  {applying ? 'Mengirim...' : 'Lamar Proyek'}
+                </button>
+              </div>
             ) : (
               <a href="/auth/masuk"
                 style={{ display: 'block', width: '100%', padding: '14px', backgroundColor: C.primary, color: 'white', textDecoration: 'none', borderRadius: R.sm, fontWeight: '700', fontSize: '15px', textAlign: 'center', boxSizing: 'border-box' }}>
