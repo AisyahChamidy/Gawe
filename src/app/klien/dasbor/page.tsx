@@ -23,6 +23,10 @@ export default function DasborKlienPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/masuk'); return }
+
+      const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      if (prof?.role !== 'client' && prof?.role !== 'both') { router.push('/app/dasbor'); return }
+
       setUser(user)
 
       const { data: projects } = await supabase

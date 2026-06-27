@@ -30,9 +30,14 @@ export default function KlienProyekDetailPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/masuk'); return }
+
+      const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      if (prof?.role !== 'client' && prof?.role !== 'both') { router.push('/app/dasbor'); return }
+
       setUser(user)
 
-      const { data: proj } = await supabase.from('projects').select('*').eq('id', projectId).single()
+      const { data: proj } = await supabase.from('projects').select('*').eq('id', projectId).eq('client_id', user.id).single()
+      if (!proj) { router.push('/klien/proyek'); return }
       setProject(proj)
       await loadMessages()
       setLoading(false)

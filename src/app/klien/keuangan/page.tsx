@@ -28,6 +28,9 @@ export default function KeuanganKlienPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/masuk'); return }
 
+      const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      if (prof?.role !== 'client' && prof?.role !== 'both') { router.push('/app/dasbor'); return }
+
       const { data } = await supabase
         .from('projects')
         .select('id, title, category, status, budget_max, funded_at, completed_at, created_at')

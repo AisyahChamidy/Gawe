@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import NavbarKlien from '@/components/NavbarKlien'
@@ -24,6 +24,16 @@ export default function PostProyekPage() {
   const [error, setError] = useState('')
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    async function checkAccess() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/masuk'); return }
+      const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      if (prof?.role !== 'client' && prof?.role !== 'both') { router.push('/app/dasbor'); return }
+    }
+    checkAccess()
+  }, [])
 
   async function handleSubmit() {
     if (!form.title || !form.description || !form.category) {
