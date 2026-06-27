@@ -202,7 +202,7 @@ function HeroSection() {
               style={{ background: C.primary, color: C.primaryTint, padding: '13px 28px', borderRadius: R.pill, fontWeight: 500, fontSize: 14, textDecoration: 'none', transition: 'transform 0.15s ease', display: 'inline-block' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
-              Mulai sebagai freelancer
+              Mulai Tanpa Portofolio
             </a>
             <a href="/auth/daftar"
               style={{ background: 'transparent', color: C.text, border: `0.5px solid ${C.primaryBorder}`, padding: '13px 28px', borderRadius: R.pill, fontWeight: 500, fontSize: 14, textDecoration: 'none', transition: 'transform 0.15s ease', display: 'inline-block' }}
@@ -327,7 +327,7 @@ const STEPS_FL = [
   { title: 'Buat profil dalam 10 menit', desc: 'Ceritakan skill kamu, jam kerja, dan tipe proyek yang diinginkan. Platform langsung tahu proyek mana yang cocok.', hl: '> Profil langsung aktif dan terlihat klien.' },
   { title: 'Ambil skill test — 15 menit', desc: 'Buktikan kemampuanmu. Hasilnya jadi Trust Score yang langsung terlihat oleh klien. Tidak perlu pengalaman sebelumnya.', hl: '> Trust Score terbentuk hari itu juga.' },
   { title: 'Ambil proyek pertamamu', desc: 'Platform merekomendasikan proyek yang sesuai levelmu. Brief jelas, budget transparan.', hl: '> Proyek mikro mulai Rp100rb.' },
-  { title: 'Selesai. Bayaran masuk. Ulangi.', desc: 'Invoice otomatis terkirim. Bayaran cair dalam 1×24 jam. Trust Score naik.', hl: '> Bayaran 100% terjamin.' },
+  { title: 'Selesai. Bayaran masuk. Ulangi.', desc: 'Invoice otomatis terkirim. Bayaran cair dalam 1×24 jam. Trust Score naik.', hl: 'Siap Mulai Gajian?' },
 ]
 
 const STEPS_KL = [
@@ -438,7 +438,7 @@ export default function LandingPage() {
         <motion.div {...hdrAnim} style={{ maxWidth: 1200, margin: '0 auto', padding: '0 32px', marginBottom: 48 }}>
           <p style={{ fontSize: 13, fontWeight: 600, color: C.primary, letterSpacing: '2px', marginBottom: 12, textTransform: 'uppercase' }}>Tiga Pilar Gawe</p>
           <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 'clamp(36px, 3.8vw, 48px)', fontWeight: 700, color: C.text, letterSpacing: '-0.5px', maxWidth: 600 }}>
-            Bukan cuma marketplace, tapi sistem yang berpihak ke pemula
+            Dirancang khusus agar pemula langsung kerja.
           </h2>
         </motion.div>
 
@@ -563,7 +563,7 @@ export default function LandingPage() {
           <motion.div {...hdrAnim}>
             <p style={{ fontSize: 13, fontWeight: 600, color: C.primary, letterSpacing: '2px', marginBottom: 12, textTransform: 'uppercase' }}>Cara Kerja</p>
             <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 'clamp(36px, 3.8vw, 48px)', fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 12 }}>
-              Dari daftar ke bayaran pertama — dalam hitungan hari.
+              Daftar hari ini, gajian dalam hitungan hari.
             </h2>
             <p style={{ fontSize: 15, color: C.textMuted, marginBottom: 32 }}>Langkah yang jelas. Tanpa ribet, tanpa drama.</p>
           </motion.div>
@@ -613,6 +613,7 @@ export default function LandingPage() {
                     borderRadius: R.pill, display: 'inline-block',
                     borderLeft: `2px solid ${i === 3 ? C.textTertiary : C.primary}`,
                   }}>{step.hl}</span>
+                  {i === 3 && <p style={{ fontSize: 12, color: C.textTertiary, opacity: 0.6, marginTop: 8 }}>Tersedia: BCA · Mandiri · GoPay · OVO · DANA</p>}
                 </div>
               </div>
             ))}
@@ -626,7 +627,8 @@ export default function LandingPage() {
           <motion.div {...hdrAnim} style={{ marginBottom: 48 }}>
             <span style={{ background: C.primaryTint, color: C.primary, fontSize: 13, fontWeight: 600, letterSpacing: '2px', padding: '5px 12px', borderRadius: R.sm, display: 'inline-block', marginBottom: 24, textTransform: 'uppercase' }}>Biaya Platform</span>
             <h2 className="outfit" style={{ fontFamily: 'var(--font-playfair),Georgia,serif', fontSize: 'clamp(36px, 3.8vw, 48px)', fontWeight: 700, color: C.text, letterSpacing: '-0.5px', marginBottom: 16 }}>
-              Gratis untuk daftar. Bayar hanya kalau kamu sudah dapat bayaran.
+              <>Gratis selamanya.<br />Potongan 10% hanya saat proyek beres.</>
+
             </h2>
             <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7 }}>
               Komisi 10% dipotong otomatis dari pembayaran saat proyek selesai. Tidak ada biaya bulanan, tidak ada biaya pendaftaran.
@@ -685,7 +687,7 @@ export default function LandingPage() {
                 </div>
                 <div style={{ textAlign: 'center', marginBottom: 20 }}>
                   <p style={{ fontSize: 13, color: C.textMuted, marginBottom: 4 }}>Dengan 10% itu, kamu dapat:</p>
-                  <p style={{ fontSize: 32, fontWeight: 700, color: C.primary, fontFamily: 'var(--font-playfair),Georgia,serif', marginBottom: 4 }}>
+                  <p style={{ fontSize: 32, fontWeight: 700, color: C.success, fontFamily: 'var(--font-playfair),Georgia,serif', marginBottom: 4 }}>
                     Rp {Math.round(projectValue * 0.9).toLocaleString('id-ID')} cair ke kamu
                   </p>
                   <p style={{ fontSize: 12, color: C.textMuted }}>
@@ -840,7 +842,7 @@ export default function LandingPage() {
               style={{ background: C.bg, color: C.text, borderRadius: R.pill, padding: '14px 32px', fontWeight: 600, fontSize: 15, textDecoration: 'none', transition: 'transform 0.15s ease, opacity 0.15s ease', display: 'inline-block' }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}>
-              Yuk mulai Gawe →
+              Mulai dari Nol di Sini
             </Link>
             <a href="/proyek"
               style={{ background: 'transparent', color: C.bg, border: '0.5px solid rgba(255,255,255,0.3)', borderRadius: R.pill, padding: '14px 32px', fontSize: 15, textDecoration: 'none', transition: 'transform 0.15s ease, opacity 0.15s ease', display: 'inline-block' }}
